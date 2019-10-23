@@ -16,7 +16,7 @@ classifiers = [
 ]
 description-file = "README.md"
 keywords = "rpg initiative d&d tracker turn"
-dist-name = "Roll for Initiative!"
+dist-name = "roll-for-initiative"
 
 [tool.flit.scripts]
 rfi = "rfi:main"
