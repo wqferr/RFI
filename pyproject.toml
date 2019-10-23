@@ -6,5 +6,9 @@ build-backend = "flit.buildapi"
 module = "rfi"
 author = "William Quelho Ferreira"
 author-email = "wqferr@gmail.com"
+home-page = "https://github.com/wqferr/rfi"
 classifiers = ["License :: OSI Approved :: MIT License"]
+description-file = "README.md"
 
+[tool.flit.scripts]
+rfi = "rfi:main"

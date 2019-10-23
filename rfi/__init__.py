@@ -1,2 +1,2 @@
-"""A CLI initiative tracker."""
-__version__ = '0.0.0'
+"""A CLI initiative tracker in the works [NOT USABLE YET]."""
+__version__ = "0.0.1"
