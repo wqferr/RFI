@@ -7,8 +7,16 @@ module = "rfi"
 author = "William Quelho Ferreira"
 author-email = "wqferr@gmail.com"
 home-page = "https://github.com/wqferr/rfi"
-classifiers = ["License :: OSI Approved :: MIT License"]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Development Status :: 2 - Pre-Alpha",
+    "Environment :: Console",
+    "Topic :: Games/Entertainment :: Role-Playing",
+    "Topic :: Games/Entertainment :: Turn Based Strategy"
+]
 description-file = "README.md"
+keywords = "rpg initiative d&d tracker turn"
+dist-name = "Roll for Initiative!"
 
 [tool.flit.scripts]
 rfi = "rfi:main"
