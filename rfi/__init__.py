@@ -1,5 +1,5 @@
-"""A CLI initiative tracker in the works [NOT USABLE YET]."""
-__version__ = "0.0.9"
+"""A CLI initiative tracker in the works."""
+__version__ = "0.1.0"
 
 from .initiative import InitiativeQueue
 from .rfi import main

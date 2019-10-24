@@ -17,7 +17,6 @@ classifiers = [
 description-file = "README.md"
 keywords = "rpg initiative d&d tracker turn"
 dist-name = "roll-for-initiative"
-
 requires = [
     "prompt-toolkit",
     "flit",
