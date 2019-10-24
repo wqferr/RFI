@@ -195,3 +195,19 @@ def test_update():
 
     with pytest.raises(ValueError):
         q.update("RandomName", 7)
+
+
+def test_position_of():
+    """Test position_of behavior."""
+    q = InitiativeQueue()
+    q.add("Tasha", 18)
+    q.add("Buzz", 15)
+    q.add("Elyn", 2)
+    q.add("Explictica", 8)
+    q.add("Isis", 17)
+
+    assert q.position_of("Tasha") == 0
+    assert q.position_of("Isis") == 1
+    assert q.position_of("Buzz") == 2
+    assert q.position_of("Explictica") == 3
+    assert q.position_of("Elyn") == 4

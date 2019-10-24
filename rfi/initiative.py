@@ -114,6 +114,20 @@ class InitiativeQueue:
         else:
             raise ValueError(f"Can't move {name} down without violating initiative order.")
 
+    def position_of(self, name: str) -> int:
+        """Find position of name in queue.
+
+        Arguments:
+            name (str): name of entry to be found.
+
+        Raises:
+            ValueError: if the name is not in the list.
+
+        """
+        # TODO add tests
+        idx = self._get_position(name)
+        return len(self) - idx - 1
+
     def _get_position(self, name: str) -> int:
         try:
             return self.names.index(name)

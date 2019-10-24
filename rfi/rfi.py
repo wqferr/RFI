@@ -7,6 +7,8 @@ from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.utils import test_callable_args
 from texttable import Texttable
 
+# TODO handle division by 0 when queue is empty
+
 try:
     from rfi.initiative import InitiativeQueue
 except ImportError:
@@ -116,11 +118,16 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
         """Add turn to initiative order."""
         initiative = int(initiative)
         self.queue.add(name, initiative)
+        if self.cursor_pos is not None and self.queue.position_of(name) <= self.cursor_pos:
+            self._move_cursor(+1)
         self._show_queue()
 
     def cmd_remove(self, name):
         """Remove a turn from initiative order."""
+        if self.cursor_pos is not None and self.queue.position_of(name) < self.cursor_pos:
+            self._move_cursor(-1)
         self.queue.remove(name)
+        self._move_cursor(0)
         self._show_queue()
 
     def cmd_chname(self, current_name, new_name):
@@ -138,11 +145,14 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
         self.cursor_pos = 0
         self._show_queue()
 
+    def _move_cursor(self, delta):
+        self.cursor_pos += delta + len(self.queue)
+        self.cursor_pos %= len(self.queue)
+
     def cmd_next(self):
         """Advance cursor to the next turn."""
         try:
-            self.cursor_pos += 1
-            self.cursor_pos %= len(self.queue)
+            self._move_cursor(+1)
             self._show_queue()
         except TypeError:
             raise ValueError("Attempt to move cursor before call to start.")
@@ -150,8 +160,7 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
     def cmd_prev(self):
         """Move cursor prev one position."""
         try:
-            self.cursor_pos += len(self.queue) - 1
-            self.cursor_pos %= len(self.queue)
+            self._move_cursor(-1)
             self._show_queue()
         except TypeError:
             raise ValueError("Attempt to move cursor before call to start.")
