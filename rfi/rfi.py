@@ -118,16 +118,23 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
         """Add turn to initiative order."""
         initiative = int(initiative)
         self.queue.add(name, initiative)
-        if self.cursor_pos is not None and self.queue.position_of(name) <= self.cursor_pos:
-            self._move_cursor(+1)
+        try:
+            if self.queue.position_of(name) <= self.cursor_pos:
+                self._move_cursor(+1)
+        except TypeError:
+            pass
         self._show_queue()
 
     def cmd_remove(self, name):
         """Remove a turn from initiative order."""
-        if self.cursor_pos is not None and self.queue.position_of(name) < self.cursor_pos:
-            self._move_cursor(-1)
+        try:
+            if self.queue.position_of(name) < self.cursor_pos:
+                self._move_cursor(-1)
+        except TypeError:
+            pass
         self.queue.remove(name)
-        self._move_cursor(0)
+        if self.cursor_pos is not None:
+            self._move_cursor(0)
         self._show_queue()
 
     def cmd_chname(self, current_name, new_name):
