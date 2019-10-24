@@ -7,13 +7,10 @@ from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.utils import test_callable_args
 from texttable import Texttable
 
-# TODO handle division by 0 when queue is empty
+from rfi import InitiativeQueue
+from rfi import __version__ as rfi_version
 
-try:
-    from rfi.initiative import InitiativeQueue
-except ImportError:
-    # THIS IS FOR INTERNAL TESTING ONLY
-    from initiative import InitiativeQueue
+# TODO handle division by 0 when queue is empty
 
 
 class Repl:  # pylint: disable=too-few-public-methods,no-self-use
@@ -43,6 +40,9 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
 
     def run(self):
         """Run the REPL until EOF is reached."""
+        print(f"rfi version {rfi_version}")
+        print("Type help and press enter for a list of commands.")
+        print("Roll for initiative!")
         while True:
             try:
                 user_input = self.session.prompt()
@@ -146,6 +146,7 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
         """Reassign initiative to an existing turn."""
         new_initiative = int(new_initiative)
         self.queue.update(name, new_initiative)
+        self._show_queue()
 
     def cmd_start(self):
         """Initialize the cursor, pointing it to the first turn in initiative order."""
