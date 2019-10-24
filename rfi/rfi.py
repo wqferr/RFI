@@ -55,5 +55,10 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
         print(initiative, name)
 
 
-if __name__ == "__main__":
+def main():
+    """Create a rfi.Repl instance and run it."""
     Repl().run()
+
+
+if __name__ == "__main__":
+    main()
