@@ -7,7 +7,11 @@ from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.utils import test_callable_args
 from texttable import Texttable
 
-from initiative import InitiativeQueue
+try:
+    from rfi.initiative import InitiativeQueue
+except ImportError:
+    # THIS IS FOR INTERNAL TESTING ONLY
+    from initiative import InitiativeQueue
 
 
 class Repl:  # pylint: disable=too-few-public-methods,no-self-use
