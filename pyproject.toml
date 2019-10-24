@@ -19,4 +19,4 @@ keywords = "rpg initiative d&d tracker turn"
 dist-name = "roll-for-initiative"
 
 [tool.flit.scripts]
-rfi = "rfi:repl"
+rfi = "rfi:main"
