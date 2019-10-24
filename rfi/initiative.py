@@ -1,5 +1,4 @@
 # TODO docstrings
-# TODO pytest
 
 from bisect import bisect_left, bisect_right
 
