@@ -13,7 +13,7 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
     commands = {
         "help": "Display help for all commands.",
         "add": "Add turn to initiative order. Usage: add {name} {initiative}",
-    }  # TODO "remove", "chname", "chroll", "mv", "start", "next", "prev", "clear"
+    }  # TODO "remove", "chname", "chinit", "mv", "start", "next", "prev", "clear"
 
     def __init__(self):
         """See help(Repl) for more information."""
