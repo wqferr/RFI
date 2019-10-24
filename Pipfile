@@ -13,6 +13,7 @@ prompt-toolkit = "*"
 flit = "*"
 pygments = "*"
 six = "*"
+texttable = "*"
 
 [requires]
 python_version = "3.6"
