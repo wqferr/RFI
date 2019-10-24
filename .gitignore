@@ -2,3 +2,4 @@ dist/**
 !**/.gitkeep
 *.pyc
 .venv
+.coverage

@@ -121,3 +121,50 @@ def test_move_down():
     assert q[2] == ("Explictica", 15)
     assert q[3] == ("Elyn", 15)
     assert q[4] == ("Isis", 14)
+
+
+def test_remove():
+    """Test removal for InitiativeQueue."""
+    q = InitiativeQueue()
+    q.add("Tasha", 18)
+    q.add("Buzz", 17)
+    q.add("Elyn", 16)
+    q.add("Explictica", 15)
+    q.add("Isis", 14)
+
+    with pytest.raises(ValueError):
+        q.remove("RandomName")
+
+    assert q[1] == ("Buzz", 17)
+    q.remove("Buzz")
+    assert q[1] == ("Elyn", 16)
+
+    assert q[-1] == ("Isis", 14)
+    q.remove("Isis")
+    assert q[-1] == ("Explictica", 15)
+
+    assert q[0] == ("Tasha", 18)
+    q.remove("Tasha")
+    assert q[0] == ("Elyn", 16)
+    q.remove("Elyn")
+    assert q[0] == ("Explictica", 15)
+    q.remove("Explictica")
+
+    with pytest.raises(IndexError):
+        _ = q[0]
+
+
+def test_len():
+    """Test len of InitiativeQueue."""
+    q = InitiativeQueue()
+    q.add("Tasha", 18)
+    q.add("Buzz", 15)
+    q.add("Elyn", 15)
+    q.add("Explictica", 15)
+    q.add("Isis", 14)
+
+    assert len(q) == 5
+
+    q.remove("Buzz")
+
+    assert len(q) == 4
