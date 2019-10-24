@@ -10,6 +10,7 @@ pyflakes = "*"
 prompt-toolkit = "*"
 flit = "*"
 pygments = "*"
+six = "*"
 
 [requires]
 python_version = "3.6"
