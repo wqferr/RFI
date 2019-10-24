@@ -1,6 +1,6 @@
 """Initiative tracking logic."""
 from bisect import bisect_left, bisect_right
-from typing import Iterator
+from typing import Iterator, Tuple
 
 
 class InitiativeQueue:
@@ -53,6 +53,20 @@ class InitiativeQueue:
         """
         removal_idx = self._get_position(name)
         self._remove(removal_idx)
+
+    def update(self, name: str, new_initiative: int) -> None:
+        """Update the initiative of an entry.
+
+        Equivalent to
+            self.remove(name)
+            self.add(name, new_initiative)
+
+        Raises:
+            ValueError: if the name is not in the queue.
+
+        """
+        self.remove(name)
+        self.add(name, new_initiative)
 
     def move_up(self, name: str) -> None:
         """Move a name up (closer to index 0) in case of a tie.
@@ -120,7 +134,7 @@ class InitiativeQueue:
         name, initiative = self._remove(original_idx)
         self._add(name, initiative, final_idx)
 
-    def __iter__(self) -> Iterator[(str, int)]:
+    def __iter__(self) -> Iterator[Tuple[str, int]]:
         """Iterate over self[idx] without looping."""
         max_idx = len(self)
         for idx in range(max_idx):

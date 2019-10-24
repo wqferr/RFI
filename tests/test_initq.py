@@ -168,3 +168,30 @@ def test_len():
     q.remove("Buzz")
 
     assert len(q) == 4
+
+
+def test_update():
+    """Test updating initiative."""
+    q = InitiativeQueue()
+    q.add("Tasha", 18)
+    q.add("Buzz", 15)
+    q.add("Elyn", 15)
+    q.add("Explictica", 15)
+    q.add("Isis", 14)
+
+    assert q[0] == ("Tasha", 18)
+    assert q[1] == ("Buzz", 15)
+    assert q[2] == ("Elyn", 15)
+    assert q[3] == ("Explictica", 15)
+    assert q[4] == ("Isis", 14)
+
+    q.update("Elyn", 16)
+
+    assert q[0] == ("Tasha", 18)
+    assert q[1] == ("Elyn", 16)
+    assert q[2] == ("Buzz", 15)
+    assert q[3] == ("Explictica", 15)
+    assert q[4] == ("Isis", 14)
+
+    with pytest.raises(ValueError):
+        q.update("RandomName", 7)
