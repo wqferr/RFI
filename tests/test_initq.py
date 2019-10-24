@@ -5,7 +5,7 @@ import pytest
 from rfi.initiative import InitiativeQueue
 
 
-def test_insertion_no_ties():
+def test_item_accessing_no_ties():
     """Test insertion order without ties."""
     q = InitiativeQueue()
     q.add("Tasha", 18)
@@ -15,6 +15,10 @@ def test_insertion_no_ties():
     assert q[0] == ("Tasha", 18)
     assert q[1] == ("Explictica", 15)
     assert q[2] == ("Elyn", 12)
+
+    assert q[-1] == ("Elyn", 12)
+    assert q[-2] == ("Explictica", 15)
+    assert q[-3] == ("Tasha", 18)
 
 
 def test_double_insertion():
@@ -35,3 +39,85 @@ def test_list_conversion():
 
     expected_list = [("Tasha", 18), ("Explictica", 15), ("Elyn", 12)]
     assert list(q) == expected_list
+
+
+def test_insertion_with_ties():
+    """Test stability of inserting a tied result."""
+    q = InitiativeQueue()
+    q.add("Tasha", 18)
+    q.add("Buzz", 15)
+    q.add("Elyn", 12)
+    q.add("Explictica", 15)
+
+    assert q[1] == ("Buzz", 15)
+    assert q[-2] == ("Explictica", 15)
+
+
+def test_move_up():
+    """Test InitiativeQueue.move_up behavior and errors."""
+    q = InitiativeQueue()
+    q.add("Tasha", 18)
+    q.add("Buzz", 15)
+    q.add("Elyn", 15)
+    q.add("Explictica", 15)
+    q.add("Isis", 14)
+
+    q.move_up("Elyn")
+    assert q[0] == ("Tasha", 18)
+    assert q[1] == ("Elyn", 15)
+    assert q[2] == ("Buzz", 15)
+    assert q[3] == ("Explictica", 15)
+    assert q[4] == ("Isis", 14)
+
+    with pytest.raises(ValueError):
+        q.move_up("Elyn")
+
+    with pytest.raises(ValueError):
+        q.move_up("Isis")
+
+    with pytest.raises(ValueError):
+        q.move_up("Tasha")
+
+    with pytest.raises(ValueError):
+        q.move_up("RandomName")
+
+    assert q[0] == ("Tasha", 18)
+    assert q[1] == ("Elyn", 15)
+    assert q[2] == ("Buzz", 15)
+    assert q[3] == ("Explictica", 15)
+    assert q[4] == ("Isis", 14)
+
+
+def test_move_down():
+    """Test InitiativeQueue.move_down behavior and errors."""
+    q = InitiativeQueue()
+    q.add("Tasha", 18)
+    q.add("Buzz", 15)
+    q.add("Elyn", 15)
+    q.add("Explictica", 15)
+    q.add("Isis", 14)
+
+    q.move_down("Elyn")
+    assert q[0] == ("Tasha", 18)
+    assert q[1] == ("Buzz", 15)
+    assert q[2] == ("Explictica", 15)
+    assert q[3] == ("Elyn", 15)
+    assert q[4] == ("Isis", 14)
+
+    with pytest.raises(ValueError):
+        q.move_down("Elyn")
+
+    with pytest.raises(ValueError):
+        q.move_down("Isis")
+
+    with pytest.raises(ValueError):
+        q.move_down("Tasha")
+
+    with pytest.raises(ValueError):
+        q.move_down("RandomName")
+
+    assert q[0] == ("Tasha", 18)
+    assert q[1] == ("Buzz", 15)
+    assert q[2] == ("Explictica", 15)
+    assert q[3] == ("Elyn", 15)
+    assert q[4] == ("Isis", 14)

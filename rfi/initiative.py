@@ -16,7 +16,7 @@ class InitiativeQueue:
         if name in self.names:
             raise ValueError("Duplicate name in initiative queue.")
 
-        insertion_idx = bisect_right(self.initiatives, initiative)
+        insertion_idx = bisect_left(self.initiatives, initiative)
         self._add(name, initiative, insertion_idx)
 
     def remove(self, name):
@@ -26,20 +26,20 @@ class InitiativeQueue:
     def move_up(self, name):
         original_idx = self._get_position(name)
         initiative = self.initiatives[original_idx]
-        min_valid_idx = bisect_left(self.initiatives, initiative)
+        max_valid_idx = bisect_right(self.initiatives, initiative) - 1
 
-        if min_valid_idx < original_idx:
-            self._move(original_idx, original_idx - 1)
+        if max_valid_idx > original_idx:
+            self._move(original_idx, original_idx + 1)
         else:
             raise ValueError(f"Can't move {name} up without violating initiative order.")
 
     def move_down(self, name):
         original_idx = self._get_position(name)
         initiative = self.initiatives[original_idx]
-        max_valid_idx = bisect_right(self.initiatives, initiative)
+        min_valid_idx = bisect_left(self.initiatives, initiative)
 
-        if max_valid_idx > original_idx:
-            self._move(original_idx, original_idx + 1)
+        if min_valid_idx < original_idx:
+            self._move(original_idx, original_idx - 1)
         else:
             raise ValueError(f"Can't move {name} down without violating initiative order.")
 
