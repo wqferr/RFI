@@ -4,10 +4,12 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+pyflakes = "*"
 
 [packages]
 prompt-toolkit = "*"
 flit = "*"
+pygments = "*"
 
 [requires]
 python_version = "3.6"
