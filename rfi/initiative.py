@@ -2,7 +2,6 @@
 # TODO pytest
 
 from bisect import bisect_left, bisect_right
-from itertools import chain
 
 
 class InitiativeQueue:
@@ -21,11 +20,11 @@ class InitiativeQueue:
         self._add(name, initiative, insertion_idx)
 
     def remove(self, name):
-        removal_idx = self.get_position(name)
+        removal_idx = self._get_position(name)
         self._remove(removal_idx)
 
     def move_up(self, name):
-        original_idx = self.get_position(name)
+        original_idx = self._get_position(name)
         initiative = self.initiatives[original_idx]
         min_valid_idx = bisect_left(self.initiatives, initiative)
 
@@ -35,7 +34,7 @@ class InitiativeQueue:
             raise ValueError(f"Can't move {name} up without violating initiative order.")
 
     def move_down(self, name):
-        original_idx = self.get_position(name)
+        original_idx = self._get_position(name)
         initiative = self.initiatives[original_idx]
         max_valid_idx = bisect_right(self.initiatives, initiative)
 
@@ -44,7 +43,7 @@ class InitiativeQueue:
         else:
             raise ValueError(f"Can't move {name} down without violating initiative order.")
 
-    def get_position(self, name):
+    def _get_position(self, name):
         try:
             return self.names.index(name)
         except ValueError:
@@ -65,4 +64,13 @@ class InitiativeQueue:
         self._add(name, initiative, final_idx)
 
     def __iter__(self):
-        return zip(self.initiatives, self.names)
+        max_idx = len(self)
+        for idx in range(max_idx):
+            yield self[idx]
+
+    def __len__(self):
+        return len(self.names)
+
+    def __getitem__(self, idx):
+        ordered_idx = -idx - 1
+        return self.names[ordered_idx], self.initiatives[ordered_idx]

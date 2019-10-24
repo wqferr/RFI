@@ -5,6 +5,8 @@ verify_ssl = true
 
 [dev-packages]
 pyflakes = "*"
+pytest = "*"
+pytest-cov = "*"
 
 [packages]
 prompt-toolkit = "*"
