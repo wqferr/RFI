@@ -1,6 +1,6 @@
 """Initiative tracking logic."""
 from bisect import bisect_left, bisect_right
-from typing import Generator
+from typing import Iterator
 
 
 class InitiativeQueue:
@@ -120,7 +120,7 @@ class InitiativeQueue:
         name, initiative = self._remove(original_idx)
         self._add(name, initiative, final_idx)
 
-    def __iter__(self) -> Generator[(str, int), None, None]:
+    def __iter__(self) -> Iterator[(str, int)]:
         """Iterate over self[idx] without looping."""
         max_idx = len(self)
         for idx in range(max_idx):
