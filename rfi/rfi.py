@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """RFI repl and main logic."""
-from __future__ import unicode_literals
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import WordCompleter
