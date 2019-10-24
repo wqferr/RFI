@@ -18,12 +18,13 @@ description-file = "README.md"
 keywords = "rpg initiative d&d tracker turn"
 dist-name = "roll-for-initiative"
 
-[dependencies]
-prompt-toolkit = "*"
-flit = "*"
-pygments = "*"
-six = "*"
-texttable = "*"
+requires = [
+    "prompt-toolkit",
+    "flit",
+    "pygments",
+    "six",
+    "texttable"
+]
 
 
 [tool.flit.scripts]
