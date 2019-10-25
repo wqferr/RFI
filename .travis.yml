@@ -4,7 +4,8 @@ python:
 - "3.7"
 
 install:
-- flit install
+- python -m pip install flit
+- python -m flit install
 
 script:
 - pylint
