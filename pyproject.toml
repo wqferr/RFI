@@ -22,7 +22,8 @@ requires = [
     "flit",
     "pygments",
     "six",
-    "texttable"
+    "texttable",
+    "dice"
 ]
 
 

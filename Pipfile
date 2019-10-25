@@ -14,6 +14,7 @@ flit = "*"
 pygments = "*"
 six = "*"
 texttable = "*"
+dice = "*"
 
 [requires]
 python_version = "3.6"

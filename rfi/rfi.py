@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """RFI repl and main logic."""
 
+from dice import roll
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.utils import test_callable_args
@@ -8,6 +9,14 @@ from texttable import Texttable
 
 from rfi import InitiativeQueue
 from rfi import __version__ as rfi_version
+
+
+def _dice_roll_sum(dice_expr: str):
+    result = roll(dice_expr)
+    try:
+        return sum(result)
+    except TypeError:
+        return result
 
 
 class Repl:  # pylint: disable=too-few-public-methods,no-self-use
@@ -70,7 +79,7 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
                 print(f"Error: {err}")
                 print()
 
-    def cmd_help(self, cmd=None):
+    def cmd_help(self, cmd: str = None):
         """Display help for one or all commands."""
         print()
         if cmd is None:
@@ -79,9 +88,9 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
             self._help_single(cmd)
         print()
 
-    def cmd_add(self, name, initiative):
+    def cmd_add(self, name: str, initiative_expression: str):
         """Add turn to initiative order."""
-        initiative = int(initiative)
+        initiative = _dice_roll_sum(initiative_expression)
         self.queue.add(name, initiative)
         try:
             if self.queue.position_of(name) <= self.cursor_pos:
@@ -90,7 +99,7 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
             pass
         self._show_queue()
 
-    def cmd_remove(self, name):
+    def cmd_remove(self, name: str):
         """Remove a turn from initiative order."""
         try:
             if self.queue.position_of(name) < self.cursor_pos:
@@ -102,12 +111,12 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
             self._move_cursor(0)
         self._show_queue()
 
-    def cmd_chname(self, current_name, new_name):
+    def cmd_chname(self, current_name: str, new_name: str):
         """Rename an existing turn."""
         self.queue.update_name(current_name, new_name)
         self._show_queue()
 
-    def cmd_chinit(self, name, new_initiative):
+    def cmd_chinit(self, name: str, new_initiative: str):
         """Reassign initiative to an existing turn."""
         new_initiative = int(new_initiative)
         self.queue.update(name, new_initiative)
@@ -134,7 +143,7 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
         except TypeError:
             raise ValueError("Attempt to move cursor before call to start")
 
-    def cmd_move(self, name, direction):
+    def cmd_move(self, name: str, direction: str):
         """Reorder turns with tied initiative, moving one of them up or down."""
         if direction == "up":
             self.queue.move_up(name)
@@ -175,20 +184,20 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
                 table.add_row([cmd, cmd_help, cmd_usage])
         print(table.draw())
 
-    def _help_single(self, cmd):
+    def _help_single(self, cmd: str):
         cmd_help = self._get_cmd_help(cmd)
         if cmd_help is None:
             raise ValueError(f"No help available for command {cmd}")
         print(cmd_help)
         print(f"Usage: {self.commands_usage[cmd]}")
 
-    def _get_cmd_help(self, cmd):
+    def _get_cmd_help(self, cmd: str):
         try:
             return self._get_command_function(cmd).__doc__
         except AttributeError:
             return None
 
-    def _move_cursor(self, delta):
+    def _move_cursor(self, delta: int):
         if self.queue:
             self.cursor_pos += delta + len(self.queue)
             self.cursor_pos %= len(self.queue)
