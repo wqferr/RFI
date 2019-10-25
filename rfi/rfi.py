@@ -28,14 +28,14 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
         "help": "help [command]",
         "add": "add {name} {init_expr}",
         "remove": "remove {name}",
-        "chname": "chname {current_name} {new_name}",
-        "chinit": "chinit {name} {init_expr}",
+        "show": "show",
         "start": "start",
         "next": "next",
         "prev": "prev",
+        "chname": "chname {current_name} {new_name}",
+        "chinit": "chinit {name} {init_expr}",
         "move": "move {name} (up|down)",
         "clear": "clear",
-        "show": "show",
     }
     commands = list(commands_usage.keys())
 
@@ -104,7 +104,7 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
 
     def cmd_add(self, name: str, init_expr: str):
         """
-        Add turn to initiative order.
+        Add entry to initiative order.
 
         Arguments:
             name: new entry name.
@@ -126,7 +126,7 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
 
     def cmd_remove(self, name: str):
         """
-        Remove a turn from initiative order.
+        Remove an entry from initiative order.
 
         Arguments:
             name: name of entry to be removed.
@@ -147,7 +147,7 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
 
     def cmd_chname(self, current_name: str, new_name: str):
         """
-        Rename an existing turn.
+        Rename an existing entry.
 
         Arguments:
             current_name: current name of entry to be updated.
@@ -178,12 +178,12 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
         self._show_queue()
 
     def cmd_start(self):
-        """Initialize the cursor, pointing it to the first turn in initiative order."""
+        """Initialize the cursor, pointing it to the first entry in initiative order."""
         self.cursor_pos = 0
         self._show_queue()
 
     def cmd_next(self):
-        """Advance cursor to the next turn."""
+        """Advance cursor to the next entry."""
         try:
             self._move_cursor(+1)
             self._show_queue()
@@ -200,7 +200,7 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
 
     def cmd_move(self, name: str, direction: str):
         """
-        Reorder turns with tied initiative, moving one of them up or down.
+        Reorder entries with tied initiative, moving one of them up or down.
 
         Only to be used on entries whose initiative is tied with another's.
 
@@ -250,6 +250,7 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
         print(table.draw())
         print()
         print("Use help {command} for more information about a specific command.")
+        print("Try help help")
 
     def _help_single(self, cmd: str):
         cmd_help = self._get_cmd_full_help(cmd)
