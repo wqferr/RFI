@@ -24,10 +24,10 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
 
     commands_usage = {
         "help": "help [command]",
-        "add": "add {name} {initiative}",
+        "add": "add {name} {initiative_expression}",
         "remove": "remove {name}",
         "chname": "chname {current_name} {new_name}",
-        "chinit": "chinit {name} {new_initiative}",
+        "chinit": "chinit {name} {new_initiative_expression}",
         "start": "start",
         "next": "next",
         "prev": "prev",
@@ -116,9 +116,9 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
         self.queue.update_name(current_name, new_name)
         self._show_queue()
 
-    def cmd_chinit(self, name: str, new_initiative: str):
+    def cmd_chinit(self, name: str, new_initiative_expression: str):
         """Reassign initiative to an existing turn."""
-        new_initiative = int(new_initiative)
+        new_initiative = _dice_roll_sum(new_initiative_expression)
         self.queue.update(name, new_initiative)
         self._show_queue()
 
