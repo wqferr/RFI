@@ -56,12 +56,17 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
         while not self.closing:
             try:
                 user_input = self.session.prompt()
-                cmd, *cmd_args = user_input.split()
-            except (KeyboardInterrupt, ValueError):
-                # Invalid input string
+            except KeyboardInterrupt:
+                # Reset user input
                 continue
             except EOFError:
                 break
+
+            try:
+                cmd, *cmd_args = user_input.split()
+            except ValueError:
+                # Empty input, translate to "next"
+                cmd, cmd_args = "next", []
 
             try:
                 cmd_function = self._get_command_function(cmd)
