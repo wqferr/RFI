@@ -9,8 +9,6 @@ from texttable import Texttable
 from rfi import InitiativeQueue
 from rfi import __version__ as rfi_version
 
-# TODO handle division by 0 when queue is empty
-
 
 class Repl:  # pylint: disable=too-few-public-methods,no-self-use
     """REPL for RFI."""
@@ -138,8 +136,8 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
 
     def cmd_chname(self, current_name, new_name):
         """Rename an existing turn."""
-        print("Not implemented yet")
-        # TODO
+        self.queue.update_name(current_name, new_name)
+        self._show_queue()
 
     def cmd_chinit(self, name, new_initiative):
         """Reassign initiative to an existing turn."""

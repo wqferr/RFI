@@ -51,7 +51,7 @@ class InitiativeQueue:
             ValueError: if the name is not in the queue.
 
         """
-        removal_idx = self._get_position(name)
+        removal_idx = self._get_index(name)
         self._remove(removal_idx)
 
     def update(self, name: str, new_initiative: int) -> None:
@@ -61,12 +61,33 @@ class InitiativeQueue:
             self.remove(name)
             self.add(name, new_initiative)
 
+        Arguments:
+            name (str): name of entry to be updated.
+            new_initiative (int): new value for entry initiative.
+
         Raises:
             ValueError: if the name is not in the queue.
 
         """
         self.remove(name)
         self.add(name, new_initiative)
+
+    def update_name(self, name: str, new_name: str) -> None:
+        """Change the name of an entry.
+
+        Argumnents:
+            name (str): current name of entry to be updated.
+            new_name (str): desired name of entry.
+
+        Raises:
+            ValueError: if the current name is not in the queue.
+            ValueError: if the new name is already in the queue.
+
+        """
+        idx = self._get_index(name)
+        if new_name in self.names:
+            raise ValueError("Desired name already exists in queue.")
+        self.names[idx] = new_name
 
     def move_up(self, name: str) -> None:
         """Move a name up (closer to index 0) in case of a tie.
@@ -82,7 +103,7 @@ class InitiativeQueue:
             ValueError: if moving the entry up would violate initiative order.
 
         """
-        original_idx = self._get_position(name)
+        original_idx = self._get_index(name)
         initiative = self.initiatives[original_idx]
         max_valid_idx = bisect_right(self.initiatives, initiative) - 1
 
@@ -105,7 +126,7 @@ class InitiativeQueue:
             ValueError: if moving the entry down would violate initiative order.
 
         """
-        original_idx = self._get_position(name)
+        original_idx = self._get_index(name)
         initiative = self.initiatives[original_idx]
         min_valid_idx = bisect_left(self.initiatives, initiative)
 
@@ -124,11 +145,10 @@ class InitiativeQueue:
             ValueError: if the name is not in the list.
 
         """
-        # TODO add tests
-        idx = self._get_position(name)
+        idx = self._get_index(name)
         return len(self) - idx - 1
 
-    def _get_position(self, name: str) -> int:
+    def _get_index(self, name: str) -> int:
         try:
             return self.names.index(name)
         except ValueError:
@@ -157,6 +177,10 @@ class InitiativeQueue:
     def __len__(self) -> int:
         """Retrieve size of queue."""
         return len(self.names)
+
+    def __contains__(self, name: str) -> bool:
+        """Check if there is an entry with the given name."""
+        return name in self.names
 
     def __bool__(self) -> bool:
         """Check if the queue has elements in it."""

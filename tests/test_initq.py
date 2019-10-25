@@ -197,6 +197,36 @@ def test_update():
         q.update("RandomName", 7)
 
 
+def test_update_name():
+    """Test name changing."""
+    q = InitiativeQueue()
+    q.add("Tasha", 18)
+    q.add("Buzz", 15)
+    q.add("Elyn", 15)
+    q.add("Explictica", 15)
+    q.add("Isis", 14)
+
+    assert q[0] == ("Tasha", 18)
+    assert q[1] == ("Buzz", 15)
+    assert q[2] == ("Elyn", 15)
+    assert q[3] == ("Explictica", 15)
+    assert q[4] == ("Isis", 14)
+
+    q.update_name("Explictica", "snek")
+
+    assert q[0] == ("Tasha", 18)
+    assert q[1] == ("Buzz", 15)
+    assert q[2] == ("Elyn", 15)
+    assert q[3] == ("snek", 15)
+    assert q[4] == ("Isis", 14)
+
+    with pytest.raises(ValueError):
+        q.update_name("Elyn", "Isis")
+
+    with pytest.raises(ValueError):
+        q.update_name("RandomName", "OtherName")
+
+
 def test_position_of():
     """Test position_of behavior."""
     q = InitiativeQueue()
@@ -214,6 +244,7 @@ def test_position_of():
 
 
 def test_empty_check():
+    """Test bool(q) behavior."""
     q = InitiativeQueue()
     assert not q
 
@@ -231,3 +262,21 @@ def test_empty_check():
 
     q.remove("Tasha")
     assert not q
+
+
+def test_contingency():
+    """Test 'name' in q behavior."""
+    q = InitiativeQueue()
+    q.add("Tasha", 18)
+    q.add("Buzz", 15)
+    q.add("Elyn", 2)
+    q.add("Explictica", 8)
+    q.add("Isis", 17)
+
+    assert "Tasha" in q
+    assert "Buzz" in q
+    assert "Elyn" in q
+    assert "Explictica" in q
+    assert "Isis" in q
+
+    assert "RandomName" not in q
