@@ -143,8 +143,12 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
         except TypeError:
             pass
         self.queue.remove(name)
-        if self.cursor_pos is not None:
-            self._move_cursor(0)
+        try:
+            if self.cursor_pos is not None:
+                self._move_cursor(0)
+        except:
+            #Queue is over, move will raise a zer division error because of % operation. this is not a problem
+            pass
         self._show_queue()
 
     def cmd_chname(self, current_name: str, new_name: str):
