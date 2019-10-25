@@ -36,6 +36,7 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
         "chinit": "chinit {name} {init_expr}",
         "move": "move {name} (up|down)",
         "clear": "clear",
+        "quit": "quit",
     }
     commands = list(commands_usage.keys())
 
@@ -45,13 +46,14 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
         self.session = PromptSession("> ", completer=completer)
         self.queue = InitiativeQueue()
         self.cursor_pos = None
+        self.closing = False
 
     def run(self):
         """Run the REPL until EOF is reached."""
         print(f"rfi version {rfi_version}")
         print("Type help and press enter for a list of commands.")
         print("Roll for initiative!")
-        while True:
+        while not self.closing:
             try:
                 user_input = self.session.prompt()
                 cmd, *cmd_args = user_input.split()
@@ -229,6 +231,10 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
         if self.queue is None:
             raise ValueError("Start command not given yet")
         self._show_queue()
+
+    def cmd_quit(self):
+        """Quit RFI."""
+        self.closing = True
 
     def _make_table(self):
         table = Texttable()
