@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """RFI repl and main logic."""
 
+from inspect import cleandoc
+
 from dice import roll
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import WordCompleter
@@ -24,10 +26,10 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
 
     commands_usage = {
         "help": "help [command]",
-        "add": "add {name} {initiative_expression}",
+        "add": "add {name} {init_expr}",
         "remove": "remove {name}",
         "chname": "chname {current_name} {new_name}",
-        "chinit": "chinit {name} {new_initiative_expression}",
+        "chinit": "chinit {name} {init_expr}",
         "start": "start",
         "next": "next",
         "prev": "prev",
@@ -80,7 +82,19 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
                 print()
 
     def cmd_help(self, cmd: str = None):
-        """Display help for one or all commands."""
+        """
+        Display help for one or all commands.
+
+        Arguments:
+            cmd (optional): command to get help on.
+                If ommitted, show overview of all commands.
+
+        Examples:
+            help
+            help add
+            help help
+
+        """
         print()
         if cmd is None:
             self._help_all()
@@ -88,9 +102,20 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
             self._help_single(cmd)
         print()
 
-    def cmd_add(self, name: str, initiative_expression: str):
-        """Add turn to initiative order."""
-        initiative = _dice_roll_sum(initiative_expression)
+    def cmd_add(self, name: str, init_expr: str):
+        """
+        Add turn to initiative order.
+
+        Arguments:
+            name: new entry name.
+            init_expr: dice expression to calculate initiative; can be a constant.
+
+        Examples:
+            add Buzz 1d20+1
+            add Explictica 15
+
+        """
+        initiative = _dice_roll_sum(init_expr)
         self.queue.add(name, initiative)
         try:
             if self.queue.position_of(name) <= self.cursor_pos:
@@ -100,7 +125,16 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
         self._show_queue()
 
     def cmd_remove(self, name: str):
-        """Remove a turn from initiative order."""
+        """
+        Remove a turn from initiative order.
+
+        Arguments:
+            name: name of entry to be removed.
+
+        Examples:
+            remove Elyn
+
+        """
         try:
             if self.queue.position_of(name) < self.cursor_pos:
                 self._move_cursor(-1)
@@ -112,13 +146,34 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
         self._show_queue()
 
     def cmd_chname(self, current_name: str, new_name: str):
-        """Rename an existing turn."""
+        """
+        Rename an existing turn.
+
+        Arguments:
+            current_name: current name of entry to be updated.
+            new_name: desired name of entry.
+
+        Examples:
+            rename Monster1 Troglodyte
+
+        """
         self.queue.update_name(current_name, new_name)
         self._show_queue()
 
-    def cmd_chinit(self, name: str, new_initiative_expression: str):
-        """Reassign initiative to an existing turn."""
-        new_initiative = _dice_roll_sum(new_initiative_expression)
+    def cmd_chinit(self, name: str, init_expr: str):
+        """
+        Reassign initiative to an existing entry.
+
+        Arguments:
+            name: name of entry to be updated.
+            init_expr: dice expression to calculate initiative; can be a constant.
+
+        Examples:
+            chinit Monter1 14
+            chinit Tasha 1d20+3
+
+        """
+        new_initiative = _dice_roll_sum(init_expr)
         self.queue.update(name, new_initiative)
         self._show_queue()
 
@@ -144,7 +199,17 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
             raise ValueError("Attempt to move cursor before call to start")
 
     def cmd_move(self, name: str, direction: str):
-        """Reorder turns with tied initiative, moving one of them up or down."""
+        """
+        Reorder turns with tied initiative, moving one of them up or down.
+
+        Only to be used on entries whose initiative is tied with another's.
+
+        Example:
+            move Elyn up
+            move Buzz up
+            move Isis down
+
+        """
         if direction == "up":
             self.queue.move_up(name)
             self._show_queue()
@@ -179,21 +244,29 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
         table.header(["Command", "Description", "Usage"])
         table.set_cols_align("lcl")
         for cmd, cmd_usage in self.commands_usage.items():
-            cmd_help = self._get_cmd_help(cmd)
+            cmd_help = self._get_cmd_short_help(cmd)
             if cmd_help is not None:
                 table.add_row([cmd, cmd_help, cmd_usage])
         print(table.draw())
+        print()
+        print("Use help {command} for more information about a specific command.")
 
     def _help_single(self, cmd: str):
-        cmd_help = self._get_cmd_help(cmd)
+        cmd_help = self._get_cmd_full_help(cmd)
         if cmd_help is None:
             raise ValueError(f"No help available for command {cmd}")
         print(cmd_help)
-        print(f"Usage: {self.commands_usage[cmd]}")
 
-    def _get_cmd_help(self, cmd: str):
+    def _get_cmd_short_help(self, cmd: str):
         try:
-            return self._get_command_function(cmd).__doc__
+            full_help = self._get_cmd_full_help(cmd)
+            return full_help.split("\n", maxsplit=1)[0]
+        except AttributeError:
+            return None
+
+    def _get_cmd_full_help(self, cmd: str):
+        try:
+            return cleandoc(self._get_command_function(cmd).__doc__)
         except AttributeError:
             return None
 
