@@ -70,38 +70,6 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
                 print(f"Error: {err}")
                 print()
 
-    def _make_table(self):
-        table = Texttable()
-        table.set_max_width(90)
-        return table
-
-    def _get_command_function(self, cmd: str):
-        return getattr(self, f"cmd_{cmd}")
-
-    def _help_all(self):
-        table = self._make_table()
-        table.set_deco(Texttable.HEADER | Texttable.VLINES)
-        table.header(["Command", "Description", "Usage"])
-        table.set_cols_align("lcl")
-        for cmd, cmd_usage in self.commands_usage.items():
-            cmd_help = self._get_cmd_help(cmd)
-            if cmd_help is not None:
-                table.add_row([cmd, cmd_help, cmd_usage])
-        print(table.draw())
-
-    def _help_single(self, cmd):
-        cmd_help = self._get_cmd_help(cmd)
-        if cmd_help is None:
-            raise ValueError(f"No help available for command {cmd}")
-        print(cmd_help)
-        print(f"Usage: {self.commands_usage[cmd]}")
-
-    def _get_cmd_help(self, cmd):
-        try:
-            return self._get_command_function(cmd).__doc__
-        except AttributeError:
-            return None
-
     def cmd_help(self, cmd=None):
         """Display help for one or all commands."""
         print()
@@ -150,13 +118,6 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
         self.cursor_pos = 0
         self._show_queue()
 
-    def _move_cursor(self, delta):
-        if self.queue:
-            self.cursor_pos += delta + len(self.queue)
-            self.cursor_pos %= len(self.queue)
-        else:
-            self.cursor_pos = None
-
     def cmd_next(self):
         """Advance cursor to the next turn."""
         try:
@@ -189,6 +150,51 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
         print("Not implemented yet")
         # TODO
 
+    def cmd_show(self):
+        """Show current state of initiative queue."""
+        if self.queue is None:
+            raise ValueError("Start command not given yet")
+        self._show_queue()
+
+    def _make_table(self):
+        table = Texttable()
+        table.set_max_width(90)
+        return table
+
+    def _get_command_function(self, cmd: str):
+        return getattr(self, f"cmd_{cmd}")
+
+    def _help_all(self):
+        table = self._make_table()
+        table.set_deco(Texttable.HEADER | Texttable.VLINES)
+        table.header(["Command", "Description", "Usage"])
+        table.set_cols_align("lcl")
+        for cmd, cmd_usage in self.commands_usage.items():
+            cmd_help = self._get_cmd_help(cmd)
+            if cmd_help is not None:
+                table.add_row([cmd, cmd_help, cmd_usage])
+        print(table.draw())
+
+    def _help_single(self, cmd):
+        cmd_help = self._get_cmd_help(cmd)
+        if cmd_help is None:
+            raise ValueError(f"No help available for command {cmd}")
+        print(cmd_help)
+        print(f"Usage: {self.commands_usage[cmd]}")
+
+    def _get_cmd_help(self, cmd):
+        try:
+            return self._get_command_function(cmd).__doc__
+        except AttributeError:
+            return None
+
+    def _move_cursor(self, delta):
+        if self.queue:
+            self.cursor_pos += delta + len(self.queue)
+            self.cursor_pos %= len(self.queue)
+        else:
+            self.cursor_pos = None
+
     def _show_queue(self):
         if self.queue:
             table = self._make_table()
@@ -207,12 +213,6 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
         print()
         print(output)
         print()
-
-    def cmd_show(self):
-        """Show current state of initiative queue."""
-        if self.queue is None:
-            raise ValueError("Start command not given yet")
-        self._show_queue()
 
 
 def main():
