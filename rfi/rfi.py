@@ -278,10 +278,12 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
             return None
 
     def _move_cursor(self, delta: int):
-        if self.queue:
+        try:
             self.cursor_pos += delta + len(self.queue)
             self.cursor_pos %= len(self.queue)
-        else:
+        except ZeroDivisionError:
+            # This happens when calling % len and the queue is empty,
+            # therefore we can set the cursor to None
             self.cursor_pos = None
 
     def _show_queue(self):
