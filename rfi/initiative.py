@@ -148,6 +148,11 @@ class InitiativeQueue:
         idx = self._get_index(name)
         return len(self) - idx - 1
 
+    def clear(self) -> None:
+        """Clear queue entries."""
+        self.names.clear()
+        self.initiatives.clear()
+
     def _get_index(self, name: str) -> int:
         try:
             return self.names.index(name)

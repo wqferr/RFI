@@ -147,8 +147,8 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
 
     def cmd_clear(self):
         """Reset initiative queue."""
-        print("Not implemented yet")
-        # TODO
+        self.queue.clear()
+        self._show_queue()
 
     def cmd_show(self):
         """Show current state of initiative queue."""

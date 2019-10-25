@@ -280,3 +280,19 @@ def test_contingency():
     assert "Isis" in q
 
     assert "RandomName" not in q
+
+
+def test_clear():
+    """Test queue clearing."""
+    q = InitiativeQueue()
+    q.add("Tasha", 18)
+    q.add("Buzz", 15)
+    q.add("Elyn", 2)
+    q.add("Explictica", 8)
+    q.add("Isis", 17)
+
+    assert bool(q)
+
+    q.clear()
+
+    assert not q
