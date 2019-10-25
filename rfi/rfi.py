@@ -9,8 +9,8 @@ from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.utils import test_callable_args
 from texttable import Texttable
 
-from rfi import InitiativeQueue
-from rfi import __version__ as rfi_version
+from . import __version__ as rfi_version  # pylint: disable=cyclic-import
+from .initiative import InitiativeQueue
 
 
 def _dice_roll_sum(dice_expr: str):
