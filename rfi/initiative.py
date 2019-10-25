@@ -158,6 +158,10 @@ class InitiativeQueue:
         """Retrieve size of queue."""
         return len(self.names)
 
+    def __bool__(self) -> bool:
+        """Check if the queue has elements in it."""
+        return bool(self.names)
+
     def __getitem__(self, n: int) -> (str, int):  # pylint: disable=invalid-name
         """Retrieve the entry with the nth greatest initiative.
 

@@ -153,8 +153,11 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
         self._show_queue()
 
     def _move_cursor(self, delta):
-        self.cursor_pos += delta + len(self.queue)
-        self.cursor_pos %= len(self.queue)
+        if self.queue:
+            self.cursor_pos += delta + len(self.queue)
+            self.cursor_pos %= len(self.queue)
+        else:
+            self.cursor_pos = None
 
     def cmd_next(self):
         """Advance cursor to the next turn."""
@@ -162,7 +165,7 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
             self._move_cursor(+1)
             self._show_queue()
         except TypeError:
-            raise ValueError("Attempt to move cursor before call to start.")
+            raise ValueError("Attempt to move cursor before call to start")
 
     def cmd_prev(self):
         """Move cursor prev one position."""
@@ -170,7 +173,7 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
             self._move_cursor(-1)
             self._show_queue()
         except TypeError:
-            raise ValueError("Attempt to move cursor before call to start.")
+            raise ValueError("Attempt to move cursor before call to start")
 
     def cmd_move(self, name, direction):
         """Reorder turns with tied initiative, moving one of them up or down."""
@@ -189,21 +192,28 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
         # TODO
 
     def _show_queue(self):
-        table = self._make_table()
-        table.set_deco(0)
-        for position, (name, initiative) in enumerate(self.queue):
-            if position == self.cursor_pos:
-                row = ["[", f"{initiative}", f"{name}", "]"]
-            else:
-                row = ["", str(initiative), name, ""]
-            table.add_row(row)
+        if self.queue:
+            table = self._make_table()
+            table.set_deco(0)
+            for position, (name, initiative) in enumerate(self.queue):
+                if position == self.cursor_pos:
+                    row = ["[", f"{initiative}", f"{name}", "]"]
+                else:
+                    row = ["", str(initiative), name, ""]
+                table.add_row(row)
+
+            output = table.draw()
+        else:
+            output = "Empty initiative queue."
 
         print()
-        print(table.draw())
+        print(output)
         print()
 
     def cmd_show(self):
         """Show current state of initiative queue."""
+        if self.queue is None:
+            raise ValueError("Start command not given yet")
         self._show_queue()
 
 

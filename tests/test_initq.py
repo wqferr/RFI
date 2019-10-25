@@ -211,3 +211,23 @@ def test_position_of():
     assert q.position_of("Buzz") == 2
     assert q.position_of("Explictica") == 3
     assert q.position_of("Elyn") == 4
+
+
+def test_empty_check():
+    q = InitiativeQueue()
+    assert not q
+
+    q.add("Tasha", 18)
+    q.add("Buzz", 15)
+    q.add("Elyn", 2)
+
+    assert bool(q)
+
+    q.remove("Buzz")
+    assert bool(q)
+
+    q.remove("Elyn")
+    assert bool(q)
+
+    q.remove("Tasha")
+    assert not q
