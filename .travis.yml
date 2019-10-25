@@ -8,5 +8,5 @@ install:
 - python -m flit install
 
 script:
-- pylint
+- pylint ./rfi/
 - pytest
