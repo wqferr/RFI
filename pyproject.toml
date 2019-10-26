@@ -28,4 +28,4 @@ requires = [
 
 
 [tool.flit.scripts]
-rfi = "rfi:main"
+rfi = "rfi:repl"
