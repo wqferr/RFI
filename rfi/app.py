@@ -330,10 +330,10 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
         print()
 
 
-def main():
-    """Create a rfi.Repl instance and run it."""
+def repl():
+    """Create a Repl instance and run it."""
     Repl().run()
 
 
 if __name__ == "__main__":
-    main()
+    repl()
