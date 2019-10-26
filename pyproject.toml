@@ -20,8 +20,6 @@ dist-name = "roll-for-initiative"
 requires = [
     "prompt-toolkit",
     "flit",
-    "pygments",
-    "six",
     "texttable",
     "dice"
 ]

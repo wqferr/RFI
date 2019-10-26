@@ -11,8 +11,6 @@ pytest-cov = "*"
 [packages]
 prompt-toolkit = "*"
 flit = "*"
-pygments = "*"
-six = "*"
 texttable = "*"
 dice = "*"
 
