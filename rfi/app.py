@@ -5,6 +5,7 @@ from inspect import cleandoc
 from dice import DiceException, roll
 from prompt_toolkit import Application
 from prompt_toolkit.completion import DummyCompleter, DynamicCompleter, WordCompleter
+from prompt_toolkit.filters import Condition
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.layout.containers import HSplit, Window
 from prompt_toolkit.layout.layout import Layout
@@ -66,6 +67,15 @@ class Repl(Application):
     def _create_keybindings(self):
         keybindings = KeyBindings()
 
+        def _set_input_text(new_text):
+            self.input_field.text = new_text
+            self.input_field.buffer.cursor_position = len(new_text)
+
+        @Condition
+        def is_typing_command():
+            tokens = self.input_field.text.split()
+            return len(tokens) <= 1
+
         @keybindings.add("up")
         def _scroll_up(_event):
             self.output_area.window._scroll_up()  # pylint: disable=protected-access
@@ -73,6 +83,27 @@ class Repl(Application):
         @keybindings.add("down")
         def _scroll_down(_event):
             self.output_area.window._scroll_down()  # pylint: disable=protected-access
+
+        @keybindings.add("c-a", filter=is_typing_command)
+        def _insert_add(_event):
+            _set_input_text("add ")
+
+        @keybindings.add("c-r", filter=is_typing_command)
+        def _insert_remove(_event):
+            _set_input_text("remove ")
+
+        @keybindings.add("c-u", filter=is_typing_command)
+        def _insert_update(_event):
+            _set_input_text("update ")
+
+        @keybindings.add("c-s", filter=is_typing_command)
+        def _do_show(_event):
+            _set_input_text("show")
+            self.input_field.buffer.validate_and_handle()
+
+        @keybindings.add("c-c")
+        def _do_clear_input(_event):
+            self.input_field.text = ""
 
         return keybindings
 
@@ -106,7 +137,6 @@ class Repl(Application):
         def get_correct_completer():
             input_text = self.input_field.text
             middle_of_arg = not input_text.endswith(" ")
-            self.output_area.text = str(middle_of_arg) + "\n"
             input_tokens = input_text.split()
             n_tokens = len(input_tokens)
             if n_tokens == 0 or n_tokens == 1 and middle_of_arg:
