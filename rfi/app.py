@@ -4,9 +4,13 @@
 from inspect import cleandoc
 
 from dice import DiceException, roll
-from prompt_toolkit import PromptSession
+from prompt_toolkit import Application, PromptSession
 from prompt_toolkit.completion import WordCompleter
-from prompt_toolkit.utils import test_callable_args
+from prompt_toolkit.layout.containers import HSplit, Window
+from prompt_toolkit.layout.layout import Layout
+from prompt_toolkit.widgets import TextArea
+
+# from prompt_toolkit.utils import test_callable_args
 from texttable import Texttable
 
 from . import __version__ as rfi_version  # pylint: disable=cyclic-import
@@ -25,7 +29,7 @@ def _dice_roll_sum(dice_expr: str):
         return result
 
 
-class Repl:  # pylint: disable=too-few-public-methods,no-self-use
+class Repl(Application):  # pylint: disable=no-self-use
     """REPL for RFI."""
 
     commands_usage = {
@@ -47,51 +51,76 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
 
     def __init__(self):
         """See help(Repl) for more information."""
-        completer = WordCompleter(self.commands, sentence=True)
-        self.session = PromptSession("> ", completer=completer)
+        self.input_field, self.output_area = self._create_text_areas()
+        layout = self._create_layout()
+        super().__init__(layout=layout)
+        # self.session = PromptSession("> ", completer=completer)
         self.queue = InitiativeQueue()
         self.cursor_pos = None
         self.closing = False
 
-    def run(self):
-        """Run the REPL until EOF is reached."""
-        print(f"rfi version {rfi_version}")
-        print("Type help and press enter for a list of commands.")
-        print("Roll for initiative!")
-        while not self.closing:
-            try:
-                user_input = self.session.prompt()
-            except KeyboardInterrupt:
-                # Reset user input
-                continue
-            except EOFError:
-                break
+    def _create_text_areas(self):
+        # TODO set max width
+        completer = WordCompleter(self.commands, sentence=True)
+        input_field = TextArea(
+            height=1,
+            prompt="> ",
+            multiline=False,
+            wrap_lines=False,
+            completer=completer,
+            accept_handler=self._accept_input,
+        )
+        output_area = TextArea(read_only=True, focusable=False)
+        return input_field, output_area
 
-            try:
-                cmd, *cmd_args = user_input.split()
-            except ValueError:
-                # Empty input, translate to "next"
-                cmd, cmd_args = "next", []
+    def _create_layout(self):
+        split = Window(height=1, char="-")
+        container = HSplit([self.output_area, split, self.input_field])
+        return Layout(container, focused_element=self.input_field)
 
-            try:
-                cmd_function = self._get_command_function(cmd)
-            except AttributeError:
-                print(f"Unknown command: {cmd}.")
-                continue
+    def _accept_input(self, buffer):
+        self.output_area.text = self.input_field.text
+        self.exit()
 
-            if not test_callable_args(cmd_function, cmd_args):
-                print()
-                print(f"Invalid usage of {cmd}.")
-                print(f"Expected usage: {self.commands_usage[cmd]}")
-                print(f"Type help {cmd} for more information.")
-                print()
-                continue
-
-            try:
-                cmd_function(*cmd_args)
-            except (ValueError, RuntimeError) as err:
-                print(f"Error: {err}")
-                print()
+    # def run(self):
+    #     """Run the REPL until EOF is reached."""
+    #     print(f"rfi version {rfi_version}")
+    #     print("Type help and press enter for a list of commands.")
+    #     print("Roll for initiative!")
+    #     while not self.closing:
+    #         try:
+    #             user_input = self.session.prompt()
+    #         except KeyboardInterrupt:
+    #             # Reset user input
+    #             continue
+    #         except EOFError:
+    #             break
+    #
+    #         try:
+    #             cmd, *cmd_args = user_input.split()
+    #         except ValueError:
+    #             # Empty input, translate to "next"
+    #             cmd, cmd_args = "next", []
+    #
+    #         try:
+    #             cmd_function = self._get_command_function(cmd)
+    #         except AttributeError:
+    #             print(f"Unknown command: {cmd}.")
+    #             continue
+    #
+    #         if not test_callable_args(cmd_function, cmd_args):
+    #             print()
+    #             print(f"Invalid usage of {cmd}.")
+    #             print(f"Expected usage: {self.commands_usage[cmd]}")
+    #             print(f"Type help {cmd} for more information.")
+    #             print()
+    #             continue
+    #
+    #         try:
+    #             cmd_function(*cmd_args)
+    #         except (ValueError, RuntimeError) as err:
+    #             print(f"Error: {err}")
+    #             print()
 
     def cmd_help(self, cmd: str = None):
         """
