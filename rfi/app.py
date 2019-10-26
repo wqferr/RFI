@@ -327,7 +327,7 @@ class Repl(Application):
 
     def cmd_move(self, name: str, direction: str):
         """
-        Reorder entries with tied initiative, moving one of them up or down.
+        Move an entry up or down one position in the queue.
 
         Only to be used on entries whose initiative is tied with another's.
 
