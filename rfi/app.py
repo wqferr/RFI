@@ -33,23 +33,23 @@ class Repl(Application):
     # pylint: disable=no-self-use
     """REPL for RFI."""
 
-    commands_usage = {
-        "help": "help [command]",
-        "add": "add {name} {init_expr}",
-        "remove": "remove {name}",
-        "show": "show",
-        "start": "start",
-        "reset": "reset",
-        "removeall": "removeall",
-        "next": "next",
-        "prev": "prev",
-        "chname": "chname {current_name} {new_name}",
-        "chinit": "chinit {name} {init_expr}",
-        "move": "move {name} (up|down)",
-        "version": "version",
-        "quit": "quit",
+    command_shortcuts = {
+        "help": "",
+        "add": "CTRL-A",
+        "remove": "CTRL-R",
+        "show": "CTRL-S",
+        "start": "",
+        "reset": "",
+        "removeall": "",
+        "next": "ENTER with empty text field",
+        "prev": "",
+        "chname": "",
+        "chinit": "",
+        "move": "",
+        "version": "",
+        "quit": "",
     }
-    commands = list(commands_usage.keys())
+    commands = list(command_shortcuts.keys())
 
     def __init__(self):
         """See help(Repl) for more information."""
@@ -185,11 +185,12 @@ class Repl(Application):
             return f"Unknown command: {cmd}."
 
         if not test_callable_args(cmd_function, cmd_args):
-            return f"""
-            Invalid usage of {cmd}.
-            Expected usage: {self.commands_usage[cmd]}
-            Type help {cmd} for more information.
-            """
+            return cleandoc(
+                f"""
+                Invalid usage of {cmd}.
+                Type help {cmd} for more information.
+                """
+            )
 
         try:
             return cmd_function(*cmd_args)
@@ -373,18 +374,18 @@ class Repl(Application):
     def _help_all(self):
         table = self._make_table()
         table.set_deco(Texttable.HEADER | Texttable.VLINES)
-        table.header(["Command", "Description", "Usage"])
+        table.header(["Command", "Description", "Shortcut"])
         table.set_cols_align("lcl")
-        for cmd, cmd_usage in self.commands_usage.items():
+        for cmd, cmd_shortcut in self.command_shortcuts.items():
             cmd_help = self._get_cmd_short_help(cmd)
             if cmd_help is not None:
-                table.add_row([cmd, cmd_help, cmd_usage])
+                table.add_row([cmd, cmd_help, cmd_shortcut])
 
         text = ""
         text += "Try help help for more information.\n"
         text += "Use the up and down arrows to scroll.\n\n"
         text += table.draw()
-        text += "\n"
+        text += "\n\n"
         text += "Use help {command} for more information about a specific command."
         return text
 
