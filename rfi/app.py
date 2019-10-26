@@ -5,6 +5,7 @@ from inspect import cleandoc
 from dice import DiceException, roll
 from prompt_toolkit import Application
 from prompt_toolkit.completion import DummyCompleter, DynamicCompleter, WordCompleter
+from prompt_toolkit.filters import Condition
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.layout.containers import HSplit, Window
 from prompt_toolkit.layout.layout import Layout
@@ -32,23 +33,23 @@ class Repl(Application):
     # pylint: disable=no-self-use
     """REPL for RFI."""
 
-    commands_usage = {
-        "help": "help [command]",
-        "add": "add {name} {init_expr}",
-        "remove": "remove {name}",
-        "show": "show",
-        "start": "start",
-        "reset": "reset",
-        "removeall": "removeall",
-        "next": "next",
-        "prev": "prev",
-        "chname": "chname {current_name} {new_name}",
-        "chinit": "chinit {name} {init_expr}",
-        "move": "move {name} (up|down)",
-        "version": "version",
-        "quit": "quit",
+    command_shortcuts = {
+        "help": "",
+        "add": "CTRL-A",
+        "remove": "CTRL-R",
+        "show": "CTRL-S",
+        "start": "",
+        "reset": "",
+        "removeall": "",
+        "next": "ENTER with empty text field",
+        "prev": "",
+        "chname": "",
+        "chinit": "",
+        "move": "",
+        "version": "",
+        "quit": "",
     }
-    commands = list(commands_usage.keys())
+    commands = list(command_shortcuts.keys())
 
     def __init__(self):
         """See help(Repl) for more information."""
@@ -66,6 +67,15 @@ class Repl(Application):
     def _create_keybindings(self):
         keybindings = KeyBindings()
 
+        def _set_input_text(new_text):
+            self.input_field.text = new_text
+            self.input_field.buffer.cursor_position = len(new_text)
+
+        @Condition
+        def is_typing_command():
+            tokens = self.input_field.text.split()
+            return len(tokens) <= 1
+
         @keybindings.add("up")
         def _scroll_up(_event):
             self.output_area.window._scroll_up()  # pylint: disable=protected-access
@@ -73,6 +83,27 @@ class Repl(Application):
         @keybindings.add("down")
         def _scroll_down(_event):
             self.output_area.window._scroll_down()  # pylint: disable=protected-access
+
+        @keybindings.add("c-a", filter=is_typing_command)
+        def _insert_add(_event):
+            _set_input_text("add ")
+
+        @keybindings.add("c-r", filter=is_typing_command)
+        def _insert_remove(_event):
+            _set_input_text("remove ")
+
+        @keybindings.add("c-u", filter=is_typing_command)
+        def _insert_update(_event):
+            _set_input_text("update ")
+
+        @keybindings.add("c-s", filter=is_typing_command)
+        def _do_show(_event):
+            _set_input_text("show")
+            self.input_field.buffer.validate_and_handle()
+
+        @keybindings.add("c-c")
+        def _do_clear_input(_event):
+            self.input_field.text = ""
 
         return keybindings
 
@@ -106,7 +137,6 @@ class Repl(Application):
         def get_correct_completer():
             input_text = self.input_field.text
             middle_of_arg = not input_text.endswith(" ")
-            self.output_area.text = str(middle_of_arg) + "\n"
             input_tokens = input_text.split()
             n_tokens = len(input_tokens)
             if n_tokens == 0 or n_tokens == 1 and middle_of_arg:
@@ -155,11 +185,12 @@ class Repl(Application):
             return f"Unknown command: {cmd}."
 
         if not test_callable_args(cmd_function, cmd_args):
-            return f"""
-            Invalid usage of {cmd}.
-            Expected usage: {self.commands_usage[cmd]}
-            Type help {cmd} for more information.
-            """
+            return cleandoc(
+                f"""
+                Invalid usage of {cmd}.
+                Type help {cmd} for more information.
+                """
+            )
 
         try:
             return cmd_function(*cmd_args)
@@ -343,18 +374,18 @@ class Repl(Application):
     def _help_all(self):
         table = self._make_table()
         table.set_deco(Texttable.HEADER | Texttable.VLINES)
-        table.header(["Command", "Description", "Usage"])
+        table.header(["Command", "Description", "Shortcut"])
         table.set_cols_align("lcl")
-        for cmd, cmd_usage in self.commands_usage.items():
+        for cmd, cmd_shortcut in self.command_shortcuts.items():
             cmd_help = self._get_cmd_short_help(cmd)
             if cmd_help is not None:
-                table.add_row([cmd, cmd_help, cmd_usage])
+                table.add_row([cmd, cmd_help, cmd_shortcut])
 
         text = ""
         text += "Try help help for more information.\n"
         text += "Use the up and down arrows to scroll.\n\n"
         text += table.draw()
-        text += "\n"
+        text += "\n\n"
         text += "Use help {command} for more information about a specific command."
         return text
 
