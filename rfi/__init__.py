@@ -1,5 +1,5 @@
 """A CLI initiative tracker in the works."""
-__version__ = "0.10.0"
+__version__ = "0.11.0"
 
 from .app import repl
 from .initiative import InitiativeQueue

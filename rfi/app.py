@@ -45,6 +45,7 @@ class Repl(Application):
         "chname": "chname {current_name} {new_name}",
         "chinit": "chinit {name} {init_expr}",
         "move": "move {name} (up|down)",
+        "version": "version",
         "quit": "quit",
     }
     commands = list(commands_usage.keys())
@@ -53,9 +54,17 @@ class Repl(Application):
         """See help(Repl) for more information."""
         self.input_field, self.output_area = self._create_text_areas()
         layout = self._create_layout()
-        super().__init__(layout=layout)
+        super().__init__(layout=layout, full_screen=True)
         self.queue = InitiativeQueue()
         self.cursor_pos = None
+        self.output_area.text = self._get_intro_message()
+
+    def _get_intro_message(self):
+        text = f"\nrfi version {rfi_version}\n"
+        text += "Type help to list available commands.\n"
+        text += "\n"
+        text += "Roll for initiative!"
+        return text
 
     def _create_text_areas(self):
         completer = WordCompleter(self.commands, sentence=True)
@@ -263,6 +272,10 @@ class Repl(Application):
         """Quit REPL."""
         self.exit()
         return ""
+
+    def cmd_version(self):
+        """Show version information."""
+        return f"rfi version {rfi_version}"
 
     def _make_table(self):
         table = Texttable()
