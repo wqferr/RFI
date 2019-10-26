@@ -69,12 +69,11 @@ class Repl(Application):
             completer=completer,
             accept_handler=self._accept_input,
         )
-        output_area = TextArea(read_only=True, focusable=False)
+        output_area = TextArea(read_only=True, focusable=False, wrap_lines=False)
         return input_field, output_area
 
     def _create_layout(self):
-        split = Window(height=1, char="-")
-        container = HSplit([self.output_area, split, self.input_field])
+        container = HSplit([self.output_area, self.input_field], padding=1, padding_char="-")
         return Layout(container, focused_element=self.input_field)
 
     def _accept_input(self, _buffer):
@@ -269,7 +268,8 @@ class Repl(Application):
 
     def _make_table(self):
         table = Texttable()
-        table.set_max_width(90)
+        screen_size = self.output.get_size()
+        table.set_max_width(min(90, screen_size.columns))
         return table
 
     def _get_command_function(self, cmd: str):
@@ -285,10 +285,11 @@ class Repl(Application):
             if cmd_help is not None:
                 table.add_row([cmd, cmd_help, cmd_usage])
 
-        text = table.draw()
+        text = "Try help help for more information\n"
+        text += "The table is big and might not fit tiny screens\n\n"
+        text += table.draw()
         text += "\n"
         text += "Use help {command} for more information about a specific command."
-        text += "Try help help"
         return text
 
     def _help_single(self, cmd: str):
