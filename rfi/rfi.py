@@ -34,12 +34,13 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
         "remove": "remove {name}",
         "show": "show",
         "start": "start",
+        "reset": "reset",
+        "removeall": "removeall",
         "next": "next",
         "prev": "prev",
         "chname": "chname {current_name} {new_name}",
         "chinit": "chinit {name} {init_expr}",
         "move": "move {name} (up|down)",
-        "clear": "clear",
         "quit": "quit",
     }
     commands = list(commands_usage.keys())
@@ -88,7 +89,7 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
 
             try:
                 cmd_function(*cmd_args)
-            except ValueError as err:
+            except (ValueError, RuntimeError) as err:
                 print(f"Error: {err}")
                 print()
 
@@ -152,8 +153,7 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
         except TypeError:
             pass
         self.queue.remove(name)
-        if self.cursor_pos is not None:
-            self._move_cursor(0)
+        self._fix_cursor()
         self._show_queue()
 
     def cmd_chname(self, current_name: str, new_name: str):
@@ -199,7 +199,7 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
             self._move_cursor(+1)
             self._show_queue()
         except TypeError:
-            raise ValueError("Attempt to move cursor before call to start")
+            raise RuntimeError("Attempt to move cursor before call to start")
 
     def cmd_prev(self):
         """Move cursor prev one position."""
@@ -207,7 +207,7 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
             self._move_cursor(-1)
             self._show_queue()
         except TypeError:
-            raise ValueError("Attempt to move cursor before call to start")
+            raise RuntimeError("Attempt to move cursor before call to start")
 
     def cmd_move(self, name: str, direction: str):
         """
@@ -230,19 +230,27 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
         else:
             raise ValueError("Direction must be up or down")
 
-    def cmd_clear(self):
-        """Reset initiative queue."""
+    def cmd_removeall(self):
+        """Remove all entries of initiative queue."""
         self.queue.clear()
+        self._fix_cursor()
+        self._show_queue()
+
+    def cmd_reset(self):
+        """Reset cursor to top of initiative queue."""
+        if self.cursor_pos is None:
+            raise RuntimeError("Nothing to reset, start was not used.")
+
+        self.cursor_pos = 0
+        self._fix_cursor()
         self._show_queue()
 
     def cmd_show(self):
         """Show current state of initiative queue."""
-        if self.queue is None:
-            raise ValueError("Start command not given yet")
         self._show_queue()
 
     def cmd_quit(self):
-        """Quit RFI."""
+        """Quit REPL."""
         self.closing = True
 
     def _make_table(self):
@@ -287,8 +295,15 @@ class Repl:  # pylint: disable=too-few-public-methods,no-self-use
             return None
 
     def _move_cursor(self, delta: int):
+        self.cursor_pos += delta + len(self.queue)
+        self._fix_cursor()
+
+    def _fix_cursor(self):
+        if self.cursor_pos is None:
+            # Nothing to fix
+            return
+
         try:
-            self.cursor_pos += delta + len(self.queue)
             self.cursor_pos %= len(self.queue)
         except ZeroDivisionError:
             # This happens when calling % len and the queue is empty,
