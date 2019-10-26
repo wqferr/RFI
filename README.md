@@ -16,12 +16,21 @@ flexibility to improvise.
 The main motivation for me to create this, really, is just so I have a clean interface with really shallow menus
 and **no setup time**. This is the project philosophy.
 
+## Quick tips
+- Type `help` or `help command` if you have any doubts.
+- Tab completion is your friend. After beginning to type a command, press tab to cycle through the suggestions.
+
 ## Flow
-### What do I do??
-When in doubt, type `help` and press enter.
+This is a TL;DR. You can find more information after this.
+- Run `add name initiative` as many times as you like. `initiative` may be a number or a diceroll expression.
+  - Entries are ordered by their decreasing initiative value.
+  - If there is a tie, you can reorder them using `move lower_entry_name up` or `move upper_entry_name down`.
+- Any time you want to see the queue but it's not visible, run `show`.
+- Run `start`.
+- Press enter when the input field is empty to advance to next entry.
+- When a creature dies or for some other reason its entry is no longer relevant to the queue, type `remove dead_creature_name`.
 
-You can get help on a specific command by doing `help command`.
+That's pretty much what you need to know to use it at a basic level.
 
-### Setting up
-#### TL;DR
-Run `add name initiative` as many times as you like. `initiative` may be a number or a diceroll expression.
+## Advanced usage
+Todo
