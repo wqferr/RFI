@@ -97,29 +97,38 @@ class Repl(Application):
 
     def _create_completer(self):
         command_completer = WordCompleter(self.commands)
-        name_completer = WordCompleter(self.queue.names)
+        name_completer = WordCompleter(self.queue.names, ignore_case=True)
         up_down_completer = WordCompleter(["up", "down"])
         dummy_completer = DummyCompleter()
 
+        commands_with_name_arg = frozenset({"remove", "move", "chinit", "chname"})
+
         def get_correct_completer():
             input_text = self.input_field.text
+            middle_of_arg = not input_text.endswith(" ")
+            self.output_area.text = str(middle_of_arg) + "\n"
             input_tokens = input_text.split()
-            if len(input_tokens) <= 1 and not input_text.endswith(" "):
+            n_tokens = len(input_tokens)
+            if n_tokens == 0 or n_tokens == 1 and middle_of_arg:
                 # Currently typing command, or input field is empty
                 return command_completer
             else:
                 cmd = input_tokens[0]
-                if len(input_tokens) == 1 and cmd in ["remove", "move", "chinit", "chname"]:
-                    # Commands that take a name as their first argument
-                    return name_completer
-                elif len(input_tokens) == 2 and cmd == "move":
-                    # Move takes either up or down as its last argument
-                    return up_down_completer
-                else:
-                    # Either a command that takes no arguments, an unknown command
-                    # or no suggestions available (such as what initiative value an entry
-                    # should have
-                    return dummy_completer
+                if cmd == "help":
+                    # Show available commands, now as possible arguments
+                    return command_completer
+                elif cmd in commands_with_name_arg:
+                    if n_tokens == 1 or n_tokens == 2 and middle_of_arg:
+                        # Command requires a name as first argument, and user
+                        # is currently typing the first argument
+                        return name_completer
+                    elif cmd == "move" and n_tokens == 2 or n_tokens == 3 and middle_of_arg:
+                        # User is typing a move command, and is currently at the
+                        # last argument
+                        return up_down_completer
+
+                # If nothing checks out, return no completion
+                return dummy_completer
 
         return DynamicCompleter(get_correct_completer)
 
