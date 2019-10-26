@@ -33,23 +33,23 @@ class Repl(Application):
     # pylint: disable=no-self-use
     """REPL for RFI."""
 
-    command_shortcuts = {
-        "help": "",
-        "add": "CTRL-A",
-        "remove": "CTRL-R",
-        "show": "CTRL-S",
-        "start": "",
-        "reset": "",
-        "removeall": "",
-        "next": "ENTER with empty text field",
-        "prev": "",
-        "chname": "",
-        "chinit": "",
-        "move": "",
-        "version": "",
-        "quit": "",
+    command_usage = {
+        "help": "help [command]",
+        "add": "add {name} {initiative}",
+        "remove": "remove {name}",
+        "show": "show",
+        "start": "start",
+        "reset": "reset",
+        "removeall": "removeall",
+        "next": "next",
+        "prev": "prev",
+        "chname": "chname {name} {new_name}",
+        "chinit": "chinit {name} {new_init}",
+        "move": "move {name} (up|down)",
+        "version": "version",
+        "quit": "quit",
     }
-    commands = list(command_shortcuts.keys())
+    commands = list(command_usage.keys())
 
     def __init__(self):
         """See help(Repl) for more information."""
@@ -230,6 +230,9 @@ class Repl(Application):
             add Buzz 1d20+1
             add Explictica 15
 
+        Shortcut:
+            CTRL-A
+
         """
         initiative = _dice_roll_sum(init_expr)
         self.queue.add(name, initiative)
@@ -249,6 +252,9 @@ class Repl(Application):
 
         Examples:
             remove Elyn
+
+        Shortcut:
+            CTRL-R
 
         """
         try:
@@ -298,7 +304,13 @@ class Repl(Application):
         return self._show_queue()
 
     def cmd_next(self):
-        """Advance cursor to the next entry."""
+        """
+        Advance cursor to the next entry.
+
+        Shortcut:
+            ENTER with empty input field.
+
+        """
         try:
             self._move_cursor(+1)
             return self._show_queue()
@@ -374,12 +386,12 @@ class Repl(Application):
     def _help_all(self):
         table = self._make_table()
         table.set_deco(Texttable.HEADER | Texttable.VLINES)
-        table.header(["Command", "Description", "Shortcut"])
+        table.header(["Command", "Description", "Usage"])
         table.set_cols_align("lcl")
-        for cmd, cmd_shortcut in self.command_shortcuts.items():
+        for cmd, cmd_usage in self.command_usage.items():
             cmd_help = self._get_cmd_short_help(cmd)
             if cmd_help is not None:
-                table.add_row([cmd, cmd_help, cmd_shortcut])
+                table.add_row([cmd, cmd_help, cmd_usage])
 
         text = ""
         text += "Try help help for more information.\n"
