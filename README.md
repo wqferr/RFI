@@ -57,3 +57,10 @@ flit install -s
 # Running it
 After installing it with either method, you can run it with `rfi` (on linux) or `python -m rfi.app` on Windows.
 
+# Special thanks
+This application is made using the following libraries and tools:
+- [flit](https://github.com/takluyver/flit) (build system)
+- [pipenv](https://github.com/pypa/pipenv) (virtual environment)
+- [pygments](http://pygments.org/) (nothing yet, but there will be syntax highlighting in the future)
+- [texttable](https://github.com/foutaise/texttable/) (pretty text tables)
+- [dice](https://github.com/borntyping/python-dice) (dice rolling for `add` and `chinit`)
