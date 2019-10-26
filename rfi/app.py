@@ -102,7 +102,7 @@ class Repl(Application):
             return f"Unknown command: {cmd}."
 
         if not test_callable_args(cmd_function, cmd_args):
-            return """
+            return f"""
             Invalid usage of {cmd}.
             Expected usage: {self.commands_usage[cmd]}
             Type help {cmd} for more information.
