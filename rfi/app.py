@@ -6,7 +6,7 @@ from inspect import cleandoc
 from dice import DiceException, roll
 from prompt_toolkit import Application
 from prompt_toolkit.completion import WordCompleter
-from prompt_toolkit.layout.containers import HSplit, Window
+from prompt_toolkit.layout.containers import HSplit
 from prompt_toolkit.layout.layout import Layout
 from prompt_toolkit.utils import test_callable_args
 from prompt_toolkit.widgets import TextArea
@@ -54,12 +54,10 @@ class Repl(Application):
         self.input_field, self.output_area = self._create_text_areas()
         layout = self._create_layout()
         super().__init__(layout=layout)
-        # TODO set keybindings
         self.queue = InitiativeQueue()
         self.cursor_pos = None
 
     def _create_text_areas(self):
-        # TODO set max width
         completer = WordCompleter(self.commands, sentence=True)
         input_field = TextArea(
             height=1,
