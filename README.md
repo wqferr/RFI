@@ -5,6 +5,8 @@ This is a terminal-based initiative tracker primarily aimed at Dungeons & Dragon
 I use the term "initiative" mostly for being recognizable, and most systems have something similar: a queue of actions
 that happen in order given a numeric value.
 
+[Jump to installation instructions](#installation)
+
 ## Motivation
 All initiative trackers I found only are bloated. They cram as many features as possible with little to no regards to UX.
 I'm going back to the basics: a CLI tool to manage initiative. No "create encounter". No "what is this creature's initiative bonus?" popup.
@@ -34,3 +36,24 @@ That's pretty much what you need to know to use it at a basic level.
 
 ## Advanced usage
 Todo
+
+# Installation
+To install the `rfi` command to your user scope, run:
+
+```
+pip install --user --upgrade roll-for-initiative
+```
+
+If you want to install directly from source, you can do:
+
+```
+cd /path/to/rfi/source/dir
+git clone https://github.com/wqferr/RFI
+cd RFI
+pip install --user --upgrade flit
+flit install -s
+```
+
+# Running it
+After installing it with either method, you can run it with `rfi` (on linux) or `python -m rfi.app` on Windows.
+
