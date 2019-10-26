@@ -6,6 +6,7 @@ from inspect import cleandoc
 from dice import DiceException, roll
 from prompt_toolkit import Application
 from prompt_toolkit.completion import WordCompleter
+from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.layout.containers import HSplit, Window
 from prompt_toolkit.layout.layout import Layout
 from prompt_toolkit.utils import test_callable_args
@@ -54,10 +55,24 @@ class Repl(Application):
         """See help(Repl) for more information."""
         self.input_field, self.output_area = self._create_text_areas()
         layout = self._create_layout()
-        super().__init__(layout=layout, full_screen=True)
+        keybindings = self._create_keybindings()
+        super().__init__(layout=layout, full_screen=True, key_bindings=keybindings)
         self.queue = InitiativeQueue()
         self.cursor_pos = None
         self.output_area.text = self._get_intro_message()
+
+    def _create_keybindings(self):
+        keybindings = KeyBindings()
+
+        @keybindings.add("up")
+        def _scroll_up(_event):
+            self.output_area.window._scroll_up()  # pylint: disable=protected-access
+
+        @keybindings.add("down")
+        def _scroll_down(_event):
+            self.output_area.window._scroll_down()  # pylint: disable=protected-access
+
+        return keybindings
 
     def _get_intro_message(self):
         text = f"\nrfi version {rfi_version}\n"
@@ -76,7 +91,7 @@ class Repl(Application):
             completer=completer,
             accept_handler=self._accept_input,
         )
-        output_area = TextArea(read_only=True, focusable=False, wrap_lines=False)
+        output_area = TextArea(read_only=True, focusable=False, wrap_lines=False, scrollbar=True)
         return input_field, output_area
 
     def _create_layout(self):
@@ -297,8 +312,9 @@ class Repl(Application):
             if cmd_help is not None:
                 table.add_row([cmd, cmd_help, cmd_usage])
 
-        text = "Try help help for more information\n"
-        text += "The table is big and might not fit tiny screens\n\n"
+        text = ""
+        text += "Try help help for more information.\n"
+        text += "Use the up and down arrows to scroll.\n\n"
         text += table.draw()
         text += "\n"
         text += "Use help {command} for more information about a specific command."
