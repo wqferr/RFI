@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """RFI repl and main logic."""
-
 from inspect import cleandoc
 
 from dice import DiceException, roll
 from prompt_toolkit import Application
-from prompt_toolkit.completion import WordCompleter
+from prompt_toolkit.completion import DummyCompleter, DynamicCompleter, WordCompleter
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.layout.containers import HSplit, Window
 from prompt_toolkit.layout.layout import Layout
@@ -53,13 +52,16 @@ class Repl(Application):
 
     def __init__(self):
         """See help(Repl) for more information."""
+        self.queue = InitiativeQueue()
+        self.cursor_pos = None
+
+        self.completer = self._create_completer()
         self.input_field, self.output_area = self._create_text_areas()
+        self.output_area.text = self._get_intro_message()
+
         layout = self._create_layout()
         keybindings = self._create_keybindings()
         super().__init__(layout=layout, full_screen=True, key_bindings=keybindings)
-        self.queue = InitiativeQueue()
-        self.cursor_pos = None
-        self.output_area.text = self._get_intro_message()
 
     def _create_keybindings(self):
         keybindings = KeyBindings()
@@ -82,17 +84,53 @@ class Repl(Application):
         return text
 
     def _create_text_areas(self):
-        completer = WordCompleter(self.commands, sentence=True)
         input_field = TextArea(
             height=1,
             prompt="> ",
             multiline=False,
             wrap_lines=False,
-            completer=completer,
+            completer=self.completer,
             accept_handler=self._accept_input,
         )
         output_area = TextArea(read_only=True, focusable=False, wrap_lines=False, scrollbar=True)
         return input_field, output_area
+
+    def _create_completer(self):
+        command_completer = WordCompleter(self.commands)
+        name_completer = WordCompleter(self.queue.names, ignore_case=True)
+        up_down_completer = WordCompleter(["up", "down"])
+        dummy_completer = DummyCompleter()
+
+        commands_with_name_arg = frozenset({"remove", "move", "chinit", "chname"})
+
+        def get_correct_completer():
+            input_text = self.input_field.text
+            middle_of_arg = not input_text.endswith(" ")
+            self.output_area.text = str(middle_of_arg) + "\n"
+            input_tokens = input_text.split()
+            n_tokens = len(input_tokens)
+            if n_tokens == 0 or n_tokens == 1 and middle_of_arg:
+                # Currently typing command, or input field is empty
+                return command_completer
+            else:
+                cmd = input_tokens[0]
+                if cmd == "help":
+                    # Show available commands, now as possible arguments
+                    return command_completer
+                elif cmd in commands_with_name_arg:
+                    if n_tokens == 1 or n_tokens == 2 and middle_of_arg:
+                        # Command requires a name as first argument, and user
+                        # is currently typing the first argument
+                        return name_completer
+                    elif cmd == "move" and n_tokens == 2 or n_tokens == 3 and middle_of_arg:
+                        # User is typing a move command, and is currently at the
+                        # last argument
+                        return up_down_completer
+
+                # If nothing checks out, return no completion
+                return dummy_completer
+
+        return DynamicCompleter(get_correct_completer)
 
     def _create_layout(self):
         split = Window(char="-", height=1)
