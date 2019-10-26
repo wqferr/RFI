@@ -4,13 +4,12 @@
 from inspect import cleandoc
 
 from dice import DiceException, roll
-from prompt_toolkit import Application, PromptSession
+from prompt_toolkit import Application
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.layout.containers import HSplit, Window
 from prompt_toolkit.layout.layout import Layout
+from prompt_toolkit.utils import test_callable_args
 from prompt_toolkit.widgets import TextArea
-
-# from prompt_toolkit.utils import test_callable_args
 from texttable import Texttable
 
 from . import __version__ as rfi_version  # pylint: disable=cyclic-import
@@ -29,7 +28,8 @@ def _dice_roll_sum(dice_expr: str):
         return result
 
 
-class Repl(Application):  # pylint: disable=no-self-use
+class Repl(Application):
+    # pylint: disable=no-self-use
     """REPL for RFI."""
 
     commands_usage = {
@@ -54,10 +54,9 @@ class Repl(Application):  # pylint: disable=no-self-use
         self.input_field, self.output_area = self._create_text_areas()
         layout = self._create_layout()
         super().__init__(layout=layout)
-        # self.session = PromptSession("> ", completer=completer)
+        # TODO set keybindings
         self.queue = InitiativeQueue()
         self.cursor_pos = None
-        self.closing = False
 
     def _create_text_areas(self):
         # TODO set max width
@@ -78,49 +77,36 @@ class Repl(Application):  # pylint: disable=no-self-use
         container = HSplit([self.output_area, split, self.input_field])
         return Layout(container, focused_element=self.input_field)
 
-    def _accept_input(self, buffer):
-        self.output_area.text = self.input_field.text
-        self.exit()
+    def _accept_input(self, _buffer):
+        user_input = self.input_field.text
+        self.output_area.text = "\n" + self.parse(user_input)
 
-    # def run(self):
-    #     """Run the REPL until EOF is reached."""
-    #     print(f"rfi version {rfi_version}")
-    #     print("Type help and press enter for a list of commands.")
-    #     print("Roll for initiative!")
-    #     while not self.closing:
-    #         try:
-    #             user_input = self.session.prompt()
-    #         except KeyboardInterrupt:
-    #             # Reset user input
-    #             continue
-    #         except EOFError:
-    #             break
-    #
-    #         try:
-    #             cmd, *cmd_args = user_input.split()
-    #         except ValueError:
-    #             # Empty input, translate to "next"
-    #             cmd, cmd_args = "next", []
-    #
-    #         try:
-    #             cmd_function = self._get_command_function(cmd)
-    #         except AttributeError:
-    #             print(f"Unknown command: {cmd}.")
-    #             continue
-    #
-    #         if not test_callable_args(cmd_function, cmd_args):
-    #             print()
-    #             print(f"Invalid usage of {cmd}.")
-    #             print(f"Expected usage: {self.commands_usage[cmd]}")
-    #             print(f"Type help {cmd} for more information.")
-    #             print()
-    #             continue
-    #
-    #         try:
-    #             cmd_function(*cmd_args)
-    #         except (ValueError, RuntimeError) as err:
-    #             print(f"Error: {err}")
-    #             print()
+    def parse(self, user_input):
+        """Parse a user input string, and return the corresponding output."""
+        try:
+            cmd, *cmd_args = user_input.split()
+        except ValueError:
+            # Empty input, translate to "next"
+            cmd, cmd_args = "next", []
+
+        try:
+            cmd_function = self._get_command_function(cmd)
+        except AttributeError:
+            return f"Unknown command: {cmd}."
+
+        if not test_callable_args(cmd_function, cmd_args):
+            return """
+            Invalid usage of {cmd}.
+            Expected usage: {self.commands_usage[cmd]}
+            Type help {cmd} for more information.
+            """
+
+        try:
+            return cmd_function(*cmd_args)
+        except (ValueError, RuntimeError) as err:
+            return f"Error: {err}"
+
+        return ""
 
     def cmd_help(self, cmd: str = None):
         """
@@ -136,12 +122,10 @@ class Repl(Application):  # pylint: disable=no-self-use
             help help
 
         """
-        print()
         if cmd is None:
-            self._help_all()
+            return self._help_all()
         else:
-            self._help_single(cmd)
-        print()
+            return self._help_single(cmd)
 
     def cmd_add(self, name: str, init_expr: str):
         """
@@ -163,7 +147,7 @@ class Repl(Application):  # pylint: disable=no-self-use
                 self._move_cursor(+1)
         except TypeError:
             pass
-        self._show_queue()
+        return self._show_queue()
 
     def cmd_remove(self, name: str):
         """
@@ -183,7 +167,7 @@ class Repl(Application):  # pylint: disable=no-self-use
             pass
         self.queue.remove(name)
         self._fix_cursor()
-        self._show_queue()
+        return self._show_queue()
 
     def cmd_chname(self, current_name: str, new_name: str):
         """
@@ -198,7 +182,7 @@ class Repl(Application):  # pylint: disable=no-self-use
 
         """
         self.queue.update_name(current_name, new_name)
-        self._show_queue()
+        return self._show_queue()
 
     def cmd_chinit(self, name: str, init_expr: str):
         """
@@ -215,18 +199,18 @@ class Repl(Application):  # pylint: disable=no-self-use
         """
         new_initiative = _dice_roll_sum(init_expr)
         self.queue.update(name, new_initiative)
-        self._show_queue()
+        return self._show_queue()
 
     def cmd_start(self):
         """Initialize the cursor, pointing it to the first entry in initiative order."""
         self.cursor_pos = 0
-        self._show_queue()
+        return self._show_queue()
 
     def cmd_next(self):
         """Advance cursor to the next entry."""
         try:
             self._move_cursor(+1)
-            self._show_queue()
+            return self._show_queue()
         except TypeError:
             raise RuntimeError("Attempt to move cursor before call to start")
 
@@ -234,7 +218,7 @@ class Repl(Application):  # pylint: disable=no-self-use
         """Move cursor prev one position."""
         try:
             self._move_cursor(-1)
-            self._show_queue()
+            return self._show_queue()
         except TypeError:
             raise RuntimeError("Attempt to move cursor before call to start")
 
@@ -252,10 +236,10 @@ class Repl(Application):  # pylint: disable=no-self-use
         """
         if direction == "up":
             self.queue.move_up(name)
-            self._show_queue()
+            return self._show_queue()
         elif direction == "down":
             self.queue.move_down(name)
-            self._show_queue()
+            return self._show_queue()
         else:
             raise ValueError("Direction must be up or down")
 
@@ -263,7 +247,7 @@ class Repl(Application):  # pylint: disable=no-self-use
         """Remove all entries of initiative queue."""
         self.queue.clear()
         self._fix_cursor()
-        self._show_queue()
+        return self._show_queue()
 
     def cmd_reset(self):
         """Reset cursor to top of initiative queue."""
@@ -272,15 +256,16 @@ class Repl(Application):  # pylint: disable=no-self-use
 
         self.cursor_pos = 0
         self._fix_cursor()
-        self._show_queue()
+        return self._show_queue()
 
     def cmd_show(self):
         """Show current state of initiative queue."""
-        self._show_queue()
+        return self._show_queue()
 
     def cmd_quit(self):
         """Quit REPL."""
-        self.closing = True
+        self.exit()
+        return ""
 
     def _make_table(self):
         table = Texttable()
@@ -299,16 +284,18 @@ class Repl(Application):  # pylint: disable=no-self-use
             cmd_help = self._get_cmd_short_help(cmd)
             if cmd_help is not None:
                 table.add_row([cmd, cmd_help, cmd_usage])
-        print(table.draw())
-        print()
-        print("Use help {command} for more information about a specific command.")
-        print("Try help help")
+
+        text = table.draw()
+        text += "\n"
+        text += "Use help {command} for more information about a specific command."
+        text += "Try help help"
+        return text
 
     def _help_single(self, cmd: str):
         cmd_help = self._get_cmd_full_help(cmd)
         if cmd_help is None:
             raise ValueError(f"No help available for command {cmd}")
-        print(cmd_help)
+        return cmd_help
 
     def _get_cmd_short_help(self, cmd: str):
         try:
@@ -354,9 +341,7 @@ class Repl(Application):  # pylint: disable=no-self-use
         else:
             output = "Empty initiative queue."
 
-        print()
-        print(output)
-        print()
+        return output
 
 
 def repl():
