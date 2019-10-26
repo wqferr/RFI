@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """RFI repl and main logic."""
 from inspect import cleandoc
-from sys import stderr
 
 from dice import DiceException, roll
 from prompt_toolkit import Application
