@@ -188,6 +188,7 @@ class Repl(Application):
             return cleandoc(
                 f"""
                 Invalid usage of {cmd}.
+                Expected usage: {self.command_usage[cmd]}
                 Type help {cmd} for more information.
                 """
             )
