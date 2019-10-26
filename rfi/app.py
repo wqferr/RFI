@@ -6,10 +6,10 @@ from inspect import cleandoc
 from dice import DiceException, roll
 from prompt_toolkit import Application
 from prompt_toolkit.completion import WordCompleter
-from prompt_toolkit.layout.containers import HSplit
+from prompt_toolkit.layout.containers import HSplit, Window
 from prompt_toolkit.layout.layout import Layout
 from prompt_toolkit.utils import test_callable_args
-from prompt_toolkit.widgets import TextArea
+from prompt_toolkit.widgets import CompletionsToolbar, TextArea
 from texttable import Texttable
 
 from . import __version__ as rfi_version  # pylint: disable=cyclic-import
@@ -80,7 +80,8 @@ class Repl(Application):
         return input_field, output_area
 
     def _create_layout(self):
-        container = HSplit([self.output_area, self.input_field], padding=1, padding_char="-")
+        split = Window(char="-", height=1)
+        container = HSplit([self.output_area, CompletionsToolbar(), split, self.input_field])
         return Layout(container, focused_element=self.input_field)
 
     def _accept_input(self, _buffer):
