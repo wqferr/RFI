@@ -55,7 +55,7 @@ flit install -s
 ```
 
 # Running it
-After installing it with either method, you can run it with `rfi` (on linux) or `python -m rfi.app` on Windows.
+After installing it with either method, you can run it with `rfi` on linux, or `python -m rfi.app` on any platform.
 
 # Special thanks
 This application is made using the following libraries and tools:
