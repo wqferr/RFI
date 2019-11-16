@@ -47,6 +47,7 @@ class Repl(Application):
         "chinit": "chinit {name} {new_init}",
         "move": "move {name} (up|down)",
         "version": "version",
+        "welcome": "welcome",
         "quit": "quit",
     }
     commands = list(command_usage.keys())
@@ -58,7 +59,7 @@ class Repl(Application):
 
         self.completer = self._create_completer()
         self.input_field, self.output_area = self._create_text_areas()
-        self.output_area.text = self._get_intro_message()
+        self.output_area.text = self.cmd_welcome()
 
         layout = self._create_layout()
         keybindings = self._create_keybindings()
@@ -72,8 +73,10 @@ class Repl(Application):
             if self.cursor_pos is not None:
                 # Empty input, translate to "next" if already started
                 cmd, cmd_args = "next", []
-            else:
+            elif self.queue:
                 cmd, cmd_args = "show", []
+            else:
+                cmd, cmd_args = "help", []
 
         try:
             cmd_function = self._get_command_function(cmd)
@@ -271,6 +274,18 @@ class Repl(Application):
         """Show version information."""
         return f"rfi version {rfi_version}"
 
+    def cmd_welcome(self):
+        """Show welcome message again."""
+        text = "\n"
+        text += f"rfi version {rfi_version}\n"
+        text += "\n"
+        text += 'Type help to list available commands, or "help command".\n'
+        text += "Roll for initiative!\n"
+        text += "\n"
+        text += "\n"
+        text += 'Hint: "add" and "chinit" can accept diceroll expressions!\n'
+        return text
+
     def _make_table(self):
         table = Texttable()
         screen_size = self.output.get_size()
@@ -392,13 +407,6 @@ class Repl(Application):
             self.input_field.text = ""
 
         return keybindings
-
-    def _get_intro_message(self):
-        text = f"\nrfi version {rfi_version}\n"
-        text += "Type help to list available commands.\n"
-        text += "\n"
-        text += "Roll for initiative!"
-        return text
 
     def _create_text_areas(self):
         input_field = TextArea(
