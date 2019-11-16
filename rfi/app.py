@@ -2,7 +2,7 @@
 """RFI repl and main logic."""
 from inspect import cleandoc
 
-from dice import DiceException, roll
+from dice import DiceBaseException, roll
 from prompt_toolkit import Application
 from prompt_toolkit.completion import DummyCompleter, DynamicCompleter, WordCompleter
 from prompt_toolkit.filters import Condition
@@ -20,8 +20,8 @@ from .initiative import InitiativeQueue
 def _dice_roll_sum(dice_expr: str):
     try:
         result = roll(dice_expr)
-    except DiceException:
-        raise ValueError(f"Invalid dice expression: {dice_expr}")
+    except DiceBaseException:
+        raise ValueError(f'Invalid dice expression ("{dice_expr}")')
 
     try:
         return sum(result)
@@ -212,7 +212,7 @@ class Repl(Application):
             self._move_cursor(+1)
             return self._show_queue()
         except TypeError:
-            raise RuntimeError("Attempt to move cursor before call to start")
+            raise RuntimeError('Attempt to move cursor before call to "start"')
 
     def cmd_prev(self):
         """Move cursor prev one position."""
@@ -220,7 +220,7 @@ class Repl(Application):
             self._move_cursor(-1)
             return self._show_queue()
         except TypeError:
-            raise RuntimeError("Attempt to move cursor before call to start")
+            raise RuntimeError('Attempt to move cursor before call to "start"')
 
     def cmd_move(self, name: str, direction: str):
         """
@@ -241,7 +241,7 @@ class Repl(Application):
             self.queue.move_down(name)
             return self._show_queue()
         else:
-            raise ValueError("Direction must be up or down")
+            raise ValueError('Direction must be "up" or "down"')
 
     def cmd_removeall(self):
         """Remove all entries of initiative queue."""
@@ -252,7 +252,7 @@ class Repl(Application):
     def cmd_reset(self):
         """Reset cursor to top of initiative queue."""
         if self.cursor_pos is None:
-            raise RuntimeError("Nothing to reset, start was not used.")
+            raise RuntimeError('Nothing to reset, "start" was not used.')
 
         self.cursor_pos = 0
         self._fix_cursor()
@@ -301,7 +301,7 @@ class Repl(Application):
     def _help_single(self, cmd: str):
         cmd_help = self._get_cmd_full_help(cmd)
         if cmd_help is None:
-            raise ValueError(f"No help available for command {cmd}")
+            raise ValueError(f'No help available for command "{cmd}"')
         return cmd_help
 
     def _get_cmd_short_help(self, cmd: str):
