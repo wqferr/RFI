@@ -64,120 +64,16 @@ class Repl(Application):
         keybindings = self._create_keybindings()
         super().__init__(layout=layout, full_screen=True, key_bindings=keybindings)
 
-    def _create_keybindings(self):
-        keybindings = KeyBindings()
-
-        def _set_input_text(new_text):
-            self.input_field.text = new_text
-            self.input_field.buffer.cursor_position = len(new_text)
-
-        @Condition
-        def is_typing_command():
-            tokens = self.input_field.text.split()
-            return len(tokens) <= 1
-
-        @keybindings.add("up")
-        def _scroll_up(_event):
-            self.output_area.window._scroll_up()  # pylint: disable=protected-access
-
-        @keybindings.add("down")
-        def _scroll_down(_event):
-            self.output_area.window._scroll_down()  # pylint: disable=protected-access
-
-        @keybindings.add("c-a", filter=is_typing_command)
-        def _insert_add(_event):
-            _set_input_text("add ")
-
-        @keybindings.add("c-r", filter=is_typing_command)
-        def _insert_remove(_event):
-            _set_input_text("remove ")
-
-        @keybindings.add("c-u", filter=is_typing_command)
-        def _insert_update(_event):
-            _set_input_text("update ")
-
-        @keybindings.add("c-s", filter=is_typing_command)
-        def _do_show(_event):
-            _set_input_text("show")
-            self.input_field.buffer.validate_and_handle()
-
-        @keybindings.add("c-c")
-        def _do_clear_input(_event):
-            self.input_field.text = ""
-
-        return keybindings
-
-    def _get_intro_message(self):
-        text = f"\nrfi version {rfi_version}\n"
-        text += "Type help to list available commands.\n"
-        text += "\n"
-        text += "Roll for initiative!"
-        return text
-
-    def _create_text_areas(self):
-        input_field = TextArea(
-            height=1,
-            prompt="> ",
-            multiline=False,
-            wrap_lines=False,
-            completer=self.completer,
-            accept_handler=self._accept_input,
-        )
-        output_area = TextArea(read_only=True, focusable=False, wrap_lines=False, scrollbar=True)
-        return input_field, output_area
-
-    def _create_completer(self):
-        command_completer = WordCompleter(self.commands)
-        name_completer = WordCompleter(self.queue.names, ignore_case=True)
-        up_down_completer = WordCompleter(["up", "down"])
-        dummy_completer = DummyCompleter()
-
-        commands_with_name_arg = frozenset({"remove", "move", "chinit", "chname"})
-
-        def get_correct_completer():
-            input_text = self.input_field.text
-            middle_of_arg = not input_text.endswith(" ")
-            input_tokens = input_text.split()
-            n_tokens = len(input_tokens)
-            if n_tokens == 0 or n_tokens == 1 and middle_of_arg:
-                # Currently typing command, or input field is empty
-                return command_completer
-            else:
-                cmd = input_tokens[0]
-                if cmd == "help":
-                    # Show available commands, now as possible arguments
-                    return command_completer
-                elif cmd in commands_with_name_arg:
-                    if n_tokens == 1 or n_tokens == 2 and middle_of_arg:
-                        # Command requires a name as first argument, and user
-                        # is currently typing the first argument
-                        return name_completer
-                    elif cmd == "move" and n_tokens == 2 or n_tokens == 3 and middle_of_arg:
-                        # User is typing a move command, and is currently at the
-                        # last argument
-                        return up_down_completer
-
-                # If nothing checks out, return no completion
-                return dummy_completer
-
-        return DynamicCompleter(get_correct_completer)
-
-    def _create_layout(self):
-        split = Window(char="-", height=1)
-        container = HSplit([self.output_area, CompletionsToolbar(), split, self.input_field])
-        return Layout(container, focused_element=self.input_field)
-
-    def _accept_input(self, _buffer):
-        user_input = self.input_field.text
-        self.output_area.text = "\n" + self.parse(user_input)
-
     def parse(self, user_input):
         """Parse a user input string, and return the corresponding output."""
         try:
             cmd, *cmd_args = user_input.split()
         except ValueError:
-            # Empty input, translate to "next"
-            cmd, cmd_args = "next", []
+            if self.cursor_pos is not None:
+                # Empty input, translate to "next" if already started
+                cmd, cmd_args = "next", []
+            else:
+                cmd, cmd_args = "show", []
 
         try:
             cmd_function = self._get_command_function(cmd)
@@ -453,6 +349,113 @@ class Repl(Application):
             output = "Empty initiative queue."
 
         return output
+
+    def _create_keybindings(self):
+        keybindings = KeyBindings()
+
+        def _set_input_text(new_text):
+            self.input_field.text = new_text
+            self.input_field.buffer.cursor_position = len(new_text)
+
+        @Condition
+        def is_typing_command():
+            tokens = self.input_field.text.split()
+            return len(tokens) <= 1
+
+        @keybindings.add("up")
+        def _scroll_up(_event):
+            self.output_area.window._scroll_up()  # pylint: disable=protected-access
+
+        @keybindings.add("down")
+        def _scroll_down(_event):
+            self.output_area.window._scroll_down()  # pylint: disable=protected-access
+
+        @keybindings.add("c-a", filter=is_typing_command)
+        def _insert_add(_event):
+            _set_input_text("add ")
+
+        @keybindings.add("c-r", filter=is_typing_command)
+        def _insert_remove(_event):
+            _set_input_text("remove ")
+
+        @keybindings.add("c-u", filter=is_typing_command)
+        def _insert_update(_event):
+            _set_input_text("update ")
+
+        @keybindings.add("c-s", filter=is_typing_command)
+        def _do_show(_event):
+            _set_input_text("show")
+            self.input_field.buffer.validate_and_handle()
+
+        @keybindings.add("c-c")
+        def _do_clear_input(_event):
+            self.input_field.text = ""
+
+        return keybindings
+
+    def _get_intro_message(self):
+        text = f"\nrfi version {rfi_version}\n"
+        text += "Type help to list available commands.\n"
+        text += "\n"
+        text += "Roll for initiative!"
+        return text
+
+    def _create_text_areas(self):
+        input_field = TextArea(
+            height=1,
+            prompt="> ",
+            multiline=False,
+            wrap_lines=False,
+            completer=self.completer,
+            accept_handler=self._accept_input,
+        )
+        output_area = TextArea(read_only=True, focusable=False, wrap_lines=False, scrollbar=True)
+        return input_field, output_area
+
+    def _create_completer(self):
+        command_completer = WordCompleter(self.commands)
+        name_completer = WordCompleter(self.queue.names, ignore_case=True)
+        up_down_completer = WordCompleter(["up", "down"])
+        dummy_completer = DummyCompleter()
+
+        commands_with_name_arg = frozenset({"remove", "move", "chinit", "chname"})
+
+        def get_correct_completer():
+            input_text = self.input_field.text
+            middle_of_arg = not input_text.endswith(" ")
+            input_tokens = input_text.split()
+            n_tokens = len(input_tokens)
+            if n_tokens == 0 or n_tokens == 1 and middle_of_arg:
+                # Currently typing command, or input field is empty
+                return command_completer
+            else:
+                cmd = input_tokens[0]
+                if cmd == "help":
+                    # Show available commands, now as possible arguments
+                    return command_completer
+                elif cmd in commands_with_name_arg:
+                    if n_tokens == 1 or n_tokens == 2 and middle_of_arg:
+                        # Command requires a name as first argument, and user
+                        # is currently typing the first argument
+                        return name_completer
+                    elif cmd == "move" and n_tokens == 2 or n_tokens == 3 and middle_of_arg:
+                        # User is typing a move command, and is currently at the
+                        # last argument
+                        return up_down_completer
+
+                # If nothing checks out, return no completion
+                return dummy_completer
+
+        return DynamicCompleter(get_correct_completer)
+
+    def _create_layout(self):
+        split = Window(char="-", height=1)
+        container = HSplit([self.output_area, CompletionsToolbar(), split, self.input_field])
+        return Layout(container, focused_element=self.input_field)
+
+    def _accept_input(self, _buffer):
+        user_input = self.input_field.text
+        self.output_area.text = "\n" + self.parse(user_input)
 
 
 def repl():
