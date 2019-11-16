@@ -1,5 +1,7 @@
 # Roll for Initiative!
 
+![Roll for Initiative screenshot](images/rfi.png)
+
 ## What is this?
 This is a terminal-based initiative tracker primarily aimed at Dungeons & Dragons 5th edition.
 I use the term "initiative" mostly for being recognizable, and most systems have something similar: a queue of actions
